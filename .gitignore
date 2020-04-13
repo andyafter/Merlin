@@ -1,12 +1,10 @@
 .idea/
 **/__pycache__/
 **/target
-dev-enviroment/spark/spark**
 **/metastore_db/
 **/derby.log
 .vscode/
-*dd_conf.yml
 *.pyc
+**/.pytest_cache/
 *test-data*
 **/.DS_Store
-metrics/lib.zip
