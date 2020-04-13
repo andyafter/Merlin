@@ -32,7 +32,7 @@ LOGGER.setLevel(logging.INFO)
 @task
 def test():
     loader = unittest.TestLoader()
-    suite = loader.discover(start_dir="merlin/")
+    suite = loader.discover(start_dir="./", )
     result = unittest.TextTestRunner().run(suite)
     if len(result.failures) != 0 or len(result.errors) != 0:
         LOGGER.error("One or more test failed")

@@ -20,7 +20,7 @@
 import json
 import unittest
 
-from values import AtomicValue, StructuredValue, SerializedTypes
+from merlin.values import AtomicValue, StructuredValue, SerializedTypes
 
 
 class AtomicValueTest(unittest.TestCase):
