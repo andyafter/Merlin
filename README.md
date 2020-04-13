@@ -1,10 +1,13 @@
+---
+title: Merlin
+author: Andy Pan
+date: 2020-02-20
+---
+
+
 # Merlin
 
----
-title: Metrics
----
-
-# Metrics
+## Metrics
 
 Here we want to discuss how to centralize metrics.
 
@@ -21,7 +24,7 @@ Therefore we want to have 2 key requirement for metrics:
 1. Common schema
 2. Include the definition through the measurement of the metric.
 
-## Hierarchy
+### Hierarchy
 
 We can start with a practical example. Let's say we want measure the total weight of oil barrels extracted from various oil wells. We can place each barrel on a barrel weighing machine and record the weight (our metric). Even in the most simplistic of the scenarios, where all the barrels are indistinguishable (same size) and we have one measuring machine, there are other factors that might impact the weight (our metric). For example, the type of the oil, temperature, humidity, when the scale was calibrated can play a role in the value of the metric. Therefore when we measure we might want to capture those factors as well as the metric itself. Some of those factors might be totally independent, some of them might have some hierarchy. In our example we would end up collecting the data in a tabular format that could look like this
 
@@ -41,11 +44,11 @@ For different scenarios we might be interested to aggregate the data a different
 
 It easy to say that that M1 and M2 will be different despite the share both the source data and the definition (total weight). The difference is what attribute we use to aggregate the data on. Rather than defining two metrics we want to capture this relationship between M1 and M2\. Therefore our schema we want to be able to capture this hierarchy.
 
-## Functional variables and expression
+### Functional variables and expression
 
 Let's think again about our M2 metric. The metric is still the `sum(Weight)` aggregate by location and temperature binned at 1C. When we aggregate by location we do not transform it, however we need to round the temperature to +/- 1C. As we might use different way of rounding it would be best to record this information with the metric itself. Since this information is not an aggregate value but rather an expression and a variable we would rather clearly identify them as `functional variable` and `function expression`
 
-## Core attributes of a metric
+### Core attributes of a metric
 
 We can now outline the core attributes of a metric:
 
@@ -60,10 +63,12 @@ We can now outline the core attributes of a metric:
 9. `v_lvl` vertical hierarchical level
 10. `h_lvl` horizontal hierarchical levels
 
-## Capturing different types in group_map
+### Capturing different types in group_map
 
 One technical constrain is that in many system map needs to have specific types. Specifically in SQL map needs to have a defined type e.g. `map<string, string>` or `map<string, long>`
 
 Therefore `group_map` and `func_map` need to be defined in such a way that it will support common data types.
 
 ...
+
+### Atomic and Composite types
