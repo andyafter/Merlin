@@ -43,7 +43,7 @@ class AtomicValueTest(unittest.TestCase):
         o = ComposedValue({'10': 10}, "test_int_map")
         print(o.as_dict())
         o = ComposedValue({'a': 1, 'b': [1, 2, 3], 'c': False}, "json_test",
-                          serialize=True, serialize_type=SerializedTypes.JSON, serializer=json.dumps)
+                          serialize_type=SerializedTypes.JSON, serializer=json.dumps)
         print(o.as_dict())
 
     # TODO add test for other types

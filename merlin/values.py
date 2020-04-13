@@ -94,7 +94,7 @@ class ComposedValue:
     __slots__ = ['atomic_value', 'list_value', 'map_value', 'type', '__input_value__', 'value_id',
                  'composite_type']
 
-    def __init__(self, input_value, value_id, serialize=False, serialize_type=None, serializer=None):
+    def __init__(self, input_value, value_id, serialize_type=None, serializer=None):
         """
 
         :param input_value:
@@ -106,7 +106,9 @@ class ComposedValue:
         self.__input_value__ = input_value
         self.value_id = value_id
 
-        if serialize:
+        need_serialize = serialize_type is None
+
+        if need_serialize:
             self.__input_value__ = serializer(self.__input_value__)
 
         raw_type = type(self.__input_value__)
@@ -114,7 +116,7 @@ class ComposedValue:
         if AtomicValue.is_atomic(raw_type):
             self.composite_type = None
             self.atomic_value = AtomicValue(self.__input_value__)
-            if serialize:
+            if need_serialize:
                 self.type = serialize_type.name.lower()
 
             else:
