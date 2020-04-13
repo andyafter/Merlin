@@ -106,7 +106,7 @@ class ComposedValue:
         self.__input_value__ = input_value
         self.value_id = value_id
 
-        need_serialize = serialize_type is None
+        need_serialize = serialize_type is not None
 
         if need_serialize:
             self.__input_value__ = serializer(self.__input_value__)
@@ -183,7 +183,7 @@ class ComposedValue:
             self.type = "vec_string"
             self.list_value = [json.dumps(v) for v in input_list]
 
-    def as_dict(self):
+    def asdict(self):
 
         keys = ['type']
         keys.extend([x.name.lower() for x in AtomicTypes])

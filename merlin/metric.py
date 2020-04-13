@@ -19,6 +19,8 @@
 
 # TODO add serializer and desirealiser from and to json
 
+from datetime import datetime
+
 from pyspark.sql.types import StructType, StructField, StringType, LongType, BooleanType, DoubleType, ArrayType, \
     MapType
 
@@ -31,28 +33,32 @@ class Metric:
     Basic definition of a metric
     """
 
-    def __init__(self, id: str, w_time: int, fun_expr: str, h_lvl: int, v_lvl: int):
-        self.id = id
-        self.time = None
-        self.w_time = w_time
-        self.val = None
-        self.group_map = {}
-        self.group_keys = []
-        self.fun_expr = fun_expr
-        self.fun_vars = {}
-        self.h_lvl = h_lvl
-        self.v_lvl = v_lvl
-        self.compute_time = None
+    __slots__ = ['id', 'time_window', 'func_expr', 'horizontal_level', 'vertical_level',
+                 'version']
+
+    def __init__(self, metric_id: str, time_window: int, func_expr: str,
+                 horizontal_level: int, vertical_level: int, version: str):
+        """
+
+        :param metric_id: identifier of the metric
+        :param time_window: how often in second the metric is computed
+        :param fun_expr:
+        :param horizontal_level:
+        :param vertical_level:
+
+        """
+
+        self.id = metric_id
+        self.time_window = time_window
+        self.func_expr = func_expr
+        self.horizontal_level = horizontal_level
+        self.vertical_level = vertical_level
+        self.version = version
 
 
-class OutputMetric(object):
-    __slots__ = ["id", "time", "w_time", "val", "h_lvl", "v_lvl",
-                 "group_map",
-                 "group_keys",
-                 "func_expr",
-                 "func_vars",
-                 "compute_date",
-                 "compute_hour"]
+class OutputMetric(Metric):
+    __slots__ = ['group_keys', 'group_map', 'func_var', 'measure_time',
+                 'compute_time', 'val', 'func_vars']
 
     SPARK_TYPE = MapType(StringType(), StructType([
         StructField("type", StringType(), True),
@@ -60,7 +66,6 @@ class OutputMetric(object):
         StructField("double", DoubleType(), True),
         StructField("bool", BooleanType(), True),
         StructField("string", StringType(), True),
-        StringType("json", StringType(), True),
         # List <Object> in spark
         StructField("vec_long", ArrayType(LongType()), True),
         StructField("vec_double", ArrayType(DoubleType()), True),
@@ -75,64 +80,98 @@ class OutputMetric(object):
 
     SPARK_OUTPUT_SCHEMA = StructType([
         StructField("id", StringType(), False),
-        StructField("time", LongType(), True),
-        StructField("w_time", LongType(), True),
+        StructField("measure_time", LongType(), True),
+        StructField("compute_time", LongType(), True),
+        StructField("compute_date", StringType(), True),
+        StructField("compute_hour", LongType(), True),
+        StructField("time_window", LongType(), True),
         StructField("val", DoubleType(), True),
-        StructField("h_lvl", LongType(), True),
-        StructField("v_lvl", LongType(), True),
         StructField("group_map", SPARK_TYPE, True),
         StructField("group_keys", ArrayType(StringType()), True),
         StructField("func_expr", StringType(), True),
         StructField("func_vars", SPARK_TYPE, True),
-        StructField("compute_date", StringType(), True),
-        StructField("compute_hour", LongType(), True)
+        StructField("horizontal_level", LongType(), True),
+        StructField("vertical_level", LongType(), True),
+        StructField("version", StringType(), True),
+
     ])
 
-    def __init__(self):
+    def __init__(self, metric: Metric, val: float, measure_time: datetime):
+        """
+        :param val: value (float)
+        :param measure_time: time when the metric was computed
+
+        Note that compute time is initialised automatically but it can be overwritten
+        """
+
+        super().__init__(metric.id, metric.time_window, metric.func_expr,
+                         metric.horizontal_level, metric.vertical_level, metric.version)
+
+        self.measure_time = measure_time
+        self.compute_time = datetime.now()
+        self.val = val
         self.group_keys = []
         self.group_map = {}
         self.func_vars = {}
 
-    def add_group_value(self, value:ComposedValue):
+    def add_group_value(self, value: ComposedValue):
         ##TODO Warn if same value is added twice
         self.group_map[value.value_id] = value
 
-    def add_func_var(self, value:ComposedValue):
+    def add_func_var(self, value: ComposedValue):
         ##TODO Warn if same value is added twice
 
         self.func_vars[value.value_id] = value
 
     def asdict(self):
-        return {'id': self.id,
-                'time': int(self.time.timestamp()),
-                'w_time': self.w_time,
-                'val': self.val,
-                'h_lvl': self.h_lvl,
-                'v_lvl': self.v_lvl,
-                'group_map': {k:v.asdict() for k,v in self.group_map},
-                'group_keys': self.group_map.keys(),
-                'func_vars':  {k:v.asdict() for k,v in self.group_map},
-                'func_expr': self.func_expr,
-                'compute_date': self.ingestion_date,
-                'compute_hour': self.ingestion_hour
-                }
+        out_dict = {'id': self.id,
+                    'measure_time': int(self.measure_time.timestamp()),
+                    'compute_time': int(self.compute_time.timestamp()),
+                    'compute_date': self.compute_time.strftime("%Y-%m-%d"),
+                    'compute_hour': self.compute_time.hour,
+                    'time_window': self.time_window,
+                    'val': self.val,
+                    'group_map': {k: v.asdict() for k, v in self.group_map.items()},
+                    'group_keys': self.group_map.keys(),
+                    'func_vars': {k: v.asdict() for k, v in self.func_vars.items()},
+                    'func_expr': self.func_expr,
+                    'horizontal_level': self.horizontal_level,
+                    'vertical_level': self.vertical_level,
+                    'version': self.version
+                    }
+
+        return out_dict
 
 
 class SourceMetric(Metric):
 
-    def __init__(self, id, w_time, fun_expr, fun_vars=[]):
-        super().__init__(id, w_time, fun_expr)
-        self.fun_vars = fun_vars
+    def __init__(self, metric_id: str, time_window: int, func_expr: str,
+                 horizontal_level: int, vertical_level: int, version: str, func_vars=[]):
+        """
+
+        :param metric_id: identifier of the metric
+        :param time_window: how often in second the metric is computed
+        :param func_expr:
+        :param horizontal_level:
+        :param vertical_level:
+        :param version: version identifier
+        :param func_vars: list of strings for the functional variables
+
+
+        """
+
+        super().__init__(metric_id, time_window, func_expr, horizontal_level, vertical_level, version)
+        self.func_vars = func_vars
 
 
 class Definition:
     """
     Simple container for metrics
     """
+
     def __init__(self, metric: SourceMetric):
         self.stages = []
         self.metric = metric
 
-    def add_stage(self, stage:Stage):
+    def add_stage(self, stage: Stage):
         self.stages.append(stage)
-

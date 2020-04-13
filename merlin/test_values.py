@@ -39,12 +39,12 @@ class AtomicValueTest(unittest.TestCase):
     def test_output_value_list(self):
         o = ComposedValue([10, 12, 13], "test_int_list")
         self.assertEqual(o.type, "vec_long")
-        print(o.as_dict())
+        print(o.asdict())
         o = ComposedValue({'10': 10}, "test_int_map")
-        print(o.as_dict())
+        print(o.asdict())
         o = ComposedValue({'a': 1, 'b': [1, 2, 3], 'c': False}, "json_test",
                           serialize_type=SerializedTypes.JSON, serializer=json.dumps)
-        print(o.as_dict())
+        print(o.asdict())
 
     # TODO add test for other types
 
