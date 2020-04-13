@@ -19,10 +19,6 @@
 
 
 import sys
-from typing import Callable, Optional
-
-
-
 
 PY37 = sys.version_info >= (3, 7)
 
@@ -40,4 +36,3 @@ if not PY37:
     # TODO handle better
 
 
-LOGGER = get_logger(level="INFO", name=__name__)

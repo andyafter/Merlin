@@ -17,14 +17,16 @@
 # under the License.
 #
 
+import json
 import unittest
-from values import AtomicValue, ComposedValue, CompositeTypes
+
+from values import AtomicValue, ComposedValue, SerializedTypes
 
 
 class AtomicValueTest(unittest.TestCase):
 
     def test_atomic(self):
-        for p in [(10, "int"), (10.0, "double"), (False, "bool"), ("10.0", "string")]:
+        for p in [(10, "long"), (10.0, "double"), (False, "bool"), ("10.0", "string")]:
             v = p[0]
             atomic_attribute = p[1]
             a = AtomicValue(v)
@@ -36,8 +38,12 @@ class AtomicValueTest(unittest.TestCase):
 
     def test_output_value_list(self):
         o = ComposedValue([10, 12, 13], "test_int_list")
-        self.assertEqual(o.type, "i_list")
-        o = ComposedValue({'10':10}, "test_int_map")
+        self.assertEqual(o.type, "vec_long")
+        print(o.as_dict())
+        o = ComposedValue({'10': 10}, "test_int_map")
+        print(o.as_dict())
+        o = ComposedValue({'a': 1, 'b': [1, 2, 3], 'c': False}, "json_test",
+                          serialize=True, serialize_type=SerializedTypes.JSON, serializer=json.dumps)
         print(o.as_dict())
 
     # TODO add test for other types

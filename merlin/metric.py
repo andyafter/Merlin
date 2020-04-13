@@ -21,8 +21,10 @@
 
 from pyspark.sql.types import StructType, StructField, StringType, LongType, BooleanType, DoubleType, ArrayType, \
     MapType
-from merlin.values import ComposedValue
+
 from merlin.stage import Stage
+from merlin.values import ComposedValue
+
 
 class Metric:
     """
@@ -54,20 +56,21 @@ class OutputMetric(object):
 
     SPARK_TYPE = MapType(StringType(), StructType([
         StructField("type", StringType(), True),
-        StructField("int", LongType(), True),
+        StructField("long", LongType(), True),
         StructField("double", DoubleType(), True),
         StructField("bool", BooleanType(), True),
         StructField("string", StringType(), True),
+        StringType("json", StringType(), True),
         # List <Object> in spark
-        StructField("i_vec", ArrayType(LongType()), True),
-        StructField("d_vec", ArrayType(DoubleType()), True),
-        StructField("b_vec", ArrayType(BooleanType()), True),
-        StructField("s_vec", ArrayType(StringType()), True),
+        StructField("vec_long", ArrayType(LongType()), True),
+        StructField("vec_double", ArrayType(DoubleType()), True),
+        StructField("vec_bool", ArrayType(BooleanType()), True),
+        StructField("vec_string", ArrayType(StringType()), True),
         # Maps <String, Object >
-        StructField("i_map", MapType(StringType(), LongType()), True),
-        StructField("d_map", MapType(StringType(), DoubleType()), True),
-        StructField("b_map", MapType(StringType(), BooleanType()), True),
-        StructField("s_map", MapType(StringType(), StringType()), True),
+        StructField("map_long", MapType(StringType(), LongType()), True),
+        StructField("map_double", MapType(StringType(), DoubleType()), True),
+        StructField("map_bool", MapType(StringType(), BooleanType()), True),
+        StructField("map_string", MapType(StringType(), StringType()), True),
     ]), True)
 
     SPARK_OUTPUT_SCHEMA = StructType([
@@ -104,13 +107,14 @@ class OutputMetric(object):
                 'time': int(self.time.timestamp()),
                 'w_time': self.w_time,
                 'val': self.val,
-                'lvl': self.lvl,
+                'h_lvl': self.h_lvl,
+                'v_lvl': self.v_lvl,
                 'group_map': {k:v.asdict() for k,v in self.group_map},
                 'group_keys': self.group_map.keys(),
                 'func_vars':  {k:v.asdict() for k,v in self.group_map},
                 'func_expr': self.func_expr,
-                'ingestion_date': self.ingestion_date,
-                'ingestion_hour': self.ingestion_hour
+                'compute_date': self.ingestion_date,
+                'compute_hour': self.ingestion_hour
                 }
 
 

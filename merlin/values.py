@@ -17,7 +17,6 @@
 # under the License.
 #
 
-import abc
 import json
 from enum import Enum
 
@@ -28,8 +27,12 @@ class AtomicValueException(Exception):
         pass
 
 
+class SerializedTypes(Enum):
+    JSON = 1
+
+
 class AtomicTypes(Enum):
-    INT = 1
+    LONG = 1
     DOUBLE = 2
     BOOL = 3
     STRING = 4
@@ -47,13 +50,13 @@ class AtomicValue:
     """
 
     ACCEPTED_PYTHON_TYPES = set([int, float, bool, str])
-    MAPPED_TYPES = {int: ('int', AtomicTypes.INT),
+    MAPPED_TYPES = {int: ('long', AtomicTypes.LONG),
                     float: ('double', AtomicTypes.DOUBLE),
                     bool: ('bool', AtomicTypes.BOOL),
                     str: ('string', AtomicTypes.STRING)
                     }
 
-    __slots__ = ['int', 'double', 'bool', 'string', 'type', '__raw_type__', '__attr_id__']
+    __slots__ = ['long', 'double', 'bool', 'string', 'type', '__raw_type__', '__attr_id__']
 
     def __init__(self, value):
         self.__raw_type__ = type(value)
@@ -91,15 +94,32 @@ class ComposedValue:
     __slots__ = ['atomic_value', 'list_value', 'map_value', 'type', '__input_value__', 'value_id',
                  'composite_type']
 
-    def __init__(self, input_value, value_id):
+    def __init__(self, input_value, value_id, serialize=False, serialize_type=None, serializer=None):
+        """
+
+        :param input_value:
+        :param value_id:
+        :param serialize: bool Do we need to serialize
+        :param serialize_type: SerializedTypes
+        :param serializer: instance of a serializer e.g json.dumps
+        """
         self.__input_value__ = input_value
         self.value_id = value_id
-        raw_type = type(input_value)
+
+        if serialize:
+            self.__input_value__ = serializer(self.__input_value__)
+
+        raw_type = type(self.__input_value__)
 
         if AtomicValue.is_atomic(raw_type):
-            self.atomic_value = AtomicValue(self.__input_value__)
-            self.type = self.atomic_value.type
             self.composite_type = None
+            self.atomic_value = AtomicValue(self.__input_value__)
+            if serialize:
+                self.type = serialize_type.name.lower()
+
+            else:
+                self.type = self.atomic_value.type.name.lower()
+
 
         elif raw_type is dict:
             self.__map_handle__()
@@ -134,16 +154,16 @@ class ComposedValue:
 
         if atomic:
             v = AtomicValue(dict_values.pop())
-            self.type = "{}_map".format(v.type.name.lower()[0])
+            self.type = "map_{}".format(v.type.name.lower())
         else:
-            self.type = "s_map"
+            self.type = "map_string"
 
     def __list_handle__(self):
 
         input_list = self.__input_value__
 
         if len(input_list) == 0:
-            self.type = "s_vec"
+            self.type = "vec_string"
             return
 
         set_types = set([type(v) for v in input_list])
@@ -155,30 +175,30 @@ class ComposedValue:
 
         if atomic:
             v = AtomicValue(input_list[0])
-            self.type = "{}_vec".format(v.type.name.lower()[0])
+            self.type = "vec_{}".format(v.type.name.lower())
             self.list_value = input_list
         else:
-            self.type = "s_vec"
+            self.type = "vec_string"
             self.list_value = [json.dumps(v) for v in input_list]
 
     def as_dict(self):
 
         keys = ['type']
         keys.extend([x.name.lower() for x in AtomicTypes])
-        keys.extend(["{}_{}".format(t.name.lower()[0], c) for c in ["vec", "map"] for t in AtomicTypes])
+        keys.extend(["{}_{}".format(c, t.name.lower()) for c in ["vec", "map"] for t in AtomicTypes])
 
         d = {k: None for k in keys}
 
         if self.composite_type is None:
-            for k, v in self.atomic_value.asdict():
+            for k, v in self.atomic_value.asdict().items():
                 d[k] = v
 
         elif self.composite_type == CompositeTypes.LIST:
-            d['type'] = self.type
             d[self.type] = self.list_value
 
         elif self.composite_type == CompositeTypes.MAP:
-            d['type'] = self.type
             d[self.type] = self.map_value
+
+        d['type'] = self.type
 
         return d
