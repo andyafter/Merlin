@@ -87,7 +87,7 @@ class AtomicValue:
         return raw_type in AtomicValue.ACCEPTED_PYTHON_TYPES
 
 
-class ComposedValue:
+class StructuredValue:
     """
     An output value which can be atomic or composite
     """

@@ -25,7 +25,7 @@ from pyspark.sql.types import StructType, StructField, StringType, LongType, Boo
     MapType
 
 from merlin.stage import Stage
-from merlin.values import ComposedValue
+from merlin.values import StructuredValue
 
 
 class Metric:
@@ -114,11 +114,11 @@ class OutputMetric(Metric):
         self.group_map = {}
         self.func_vars = {}
 
-    def add_group_value(self, value: ComposedValue):
+    def add_group_value(self, value: StructuredValue):
         ##TODO Warn if same value is added twice
         self.group_map[value.value_id] = value
 
-    def add_func_var(self, value: ComposedValue):
+    def add_func_var(self, value: StructuredValue):
         ##TODO Warn if same value is added twice
 
         self.func_vars[value.value_id] = value

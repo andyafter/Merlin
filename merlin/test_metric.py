@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 
 from merlin.metric import OutputMetric, SourceMetric
-from merlin.values import ComposedValue
+from merlin.values import StructuredValue
 
 
 class OutputMetricTest(unittest.TestCase):
@@ -16,9 +16,9 @@ class OutputMetricTest(unittest.TestCase):
                                      version="1.0",
                                      func_vars=["mass", "density", "time"])
 
-        mass = ComposedValue(25.0, "mass")
-        density = ComposedValue(5.0, "density")
-        location = ComposedValue([120.0, 10.0], "location")
+        mass = StructuredValue(25.0, "mass")
+        density = StructuredValue(5.0, "density")
+        location = StructuredValue([120.0, 10.0], "location")
         output_metric = OutputMetric(source_metric, 5.0, datetime(2020, 3, 25, 1, 0))
         output_metric.add_func_var(mass)
         output_metric.add_func_var(density)

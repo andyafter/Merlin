@@ -20,7 +20,7 @@
 import json
 import unittest
 
-from values import AtomicValue, ComposedValue, SerializedTypes
+from values import AtomicValue, StructuredValue, SerializedTypes
 
 
 class AtomicValueTest(unittest.TestCase):
@@ -37,13 +37,13 @@ class AtomicValueTest(unittest.TestCase):
             print(a.asdict())
 
     def test_output_value_list(self):
-        o = ComposedValue([10, 12, 13], "test_int_list")
+        o = StructuredValue([10, 12, 13], "test_int_list")
         self.assertEqual(o.type, "vec_long")
         print(o.asdict())
-        o = ComposedValue({'10': 10}, "test_int_map")
+        o = StructuredValue({'10': 10}, "test_int_map")
         print(o.asdict())
-        o = ComposedValue({'a': 1, 'b': [1, 2, 3], 'c': False}, "json_test",
-                          serialize_type=SerializedTypes.JSON, serializer=json.dumps)
+        o = StructuredValue({'a': 1, 'b': [1, 2, 3], 'c': False}, "json_test",
+                            serialize_type=SerializedTypes.JSON, serializer=json.dumps)
         print(o.asdict())
 
     # TODO add test for other types
