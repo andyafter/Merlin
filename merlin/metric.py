@@ -132,7 +132,7 @@ class OutputMetric(Metric):
                     'time_window': self.time_window,
                     'val': self.val,
                     'group_map': {k: v.asdict() for k, v in self.group_map.items()},
-                    'group_keys': self.group_map.keys(),
+                    'group_keys': list(self.group_map.keys()),
                     'func_vars': {k: v.asdict() for k, v in self.func_vars.items()},
                     'func_expr': self.func_expr,
                     'horizontal_level': self.horizontal_level,

@@ -18,7 +18,7 @@ class OutputMetricTest(unittest.TestCase):
 
         mass = StructuredValue(25.0, "mass")
         density = StructuredValue(5.0, "density")
-        location = StructuredValue([120.0, 10.0], "location")
+        location = StructuredValue({"lat": 120.0, "long": 10.0}, "location")
         output_metric = OutputMetric(source_metric, 5.0, datetime(2020, 3, 25, 1, 0))
         output_metric.add_func_var(mass)
         output_metric.add_func_var(density)
