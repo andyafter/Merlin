@@ -16,10 +16,12 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-from paver.easy import *
-import unittest
-import sys
 import logging
+import sys
+import unittest
+
+from paver.easy import *
+
 TARGET_DIR = "target"
 
 
@@ -28,7 +30,7 @@ LOGGER.setLevel(logging.INFO)
 
 
 @task
-def test_metric():
+def test():
     loader = unittest.TestLoader()
     suite = loader.discover(start_dir="merlin/")
     result = unittest.TextTestRunner().run(suite)
