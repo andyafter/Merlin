@@ -1,2 +1,3 @@
 paver
 pyspark
+pytest
