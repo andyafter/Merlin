@@ -27,7 +27,7 @@ sudo apt install git-flow
 
 If you are using Mac OS X, please checkout the [install instructions](https://github.com/nvie/gitflow/wiki/Mac-OS-X).
 
-Now `cd` to the root of the pluribus repo.
+Now `cd` to the root of the repo.
 
 Run:
 ```bash
