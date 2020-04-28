@@ -1,9 +1,8 @@
 import importlib
-from enum import Enum
 import uuid
+from enum import Enum
 
 from merlin.logger import get_logger
-
 
 LOGGER = get_logger(level="INFO", name=__name__)
 
@@ -15,7 +14,6 @@ class StageType(Enum):
 
 
 class StageOutputType(Enum):
-
     view = 0
     store = 1
     cached_view = 2
@@ -23,7 +21,7 @@ class StageOutputType(Enum):
 
 class Stage:
 
-    def __init__(self, execution_type:StageType, output_type=StageOutputType.view,
+    def __init__(self, execution_type: StageType, output_type=StageOutputType.view,
                  stage_id=str(uuid.uuid4()), sql_query=None, h_lvl=0, v_lvl=0,
                  view_name=None, py_mod=None, py_stage_args=None, engine_context=None):
         self.id = stage_id
@@ -56,7 +54,7 @@ class Stage:
         :return:
         """
         if self.execution_type == StageType.python:
-           assert self.py_stage is not None
+            assert self.py_stage is not None
 
     def load_custom_stage(self):
         """

@@ -55,6 +55,9 @@ class Metric:
         self.vertical_level = vertical_level
         self.version = version
 
+    def __str__(self):
+        d = {s: self.__getattribute__(s) for s in self.__slots__}
+        return "{}".format(d)
 
 class OutputMetric(Metric):
     __slots__ = ['group_keys', 'group_map', 'func_var', 'measure_time',
@@ -175,3 +178,6 @@ class Definition:
 
     def add_stage(self, stage: Stage):
         self.stages.append(stage)
+
+    def __str__(self):
+        "metric:{}, stages[]".format(self.metric, ",".join(self.stages))
