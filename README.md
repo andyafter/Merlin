@@ -72,3 +72,11 @@ Therefore `group_map` and `func_map` need to be defined in such a way that it wi
 ...
 
 ### Atomic and Composite types
+
+## Contributing
+
+This is an open effort and help, criticisms and ideas are all welcome. 
+
+First of all, please check out the [CONTRIBUTING](/CONTRIBUTING.md) guide.
+
+Feel free to start a discussion on the github issues or to reach out to me at leonfedden at gmail dot com. 
