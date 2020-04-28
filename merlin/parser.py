@@ -3,7 +3,8 @@ import yaml
 from merlin.metric import SourceMetric
 from merlin.utils import LOGGER
 
-class MetricParser():
+
+class MetricParser:
     def __init__(self):
         # the metric_fields is a set of metric field strings. This is for validation use.
         self.metric_fields = set(['id', 'time', 'w_time', 'group_map', 'group_keys', 'func_map', 'func_expr', 'func_vars', 'compute_time', 'v_lvl', 'h_lvl', 'stages', 'description', 'version'])
