@@ -15,20 +15,26 @@ class MyTestCase(unittest.TestCase):
     def test_engine(self):
         conf = SparkConf().setAppName("unit_test").setMaster("local[2]")
         spark = SparkSession.builder.config(conf=conf).enableHiveSupport().getOrCreate()
-        rdd = spark.sparkContext.parallelize([{'mass': 100.0, 'density': 40.0, 'time': 15140210}])
-        test_df = rdd.toDF()
-        test_df.createOrReplaceTempView("input_table")
-        spark.sql("select * from input_table").show(100, 100)
+        test_df = spark.read.json("test/data/synthetic_data.json.gz")
+        test_df.createOrReplaceTempView("input_data")
+        spark.sql("select * from input_data").show(10, 50)
         source_metric = SourceMetric(metric_id="volumetric_flow_rate",
                                      time_window=500,
                                      func_expr="mass / density / time",
                                      horizontal_level=1,
                                      vertical_level=0,
                                      version="1.0",
-                                     func_vars=["mass", "density", "time"])
+                                     func_vars=["mass", "density"])
         stage = Stage(execution_type=StageType.spark_sql,
                       output_type=StageOutputType.store,
-                      sql_query="select cast(count(1) as double) as val, current_timestamp as measure_time from input_table "
+                      sql_query="""
+                      select cast(from_unixtime(floor(time/500)*500) as timestamp) as measure_time,
+                      methane_id, 
+                      max(data[0]) val,
+                      collect_set(data[0]) func_var_samples
+                      from input_data
+                      group by 1,2
+                      """
                       )
         definition = Definition(source_metric).add_stage(stage)
 

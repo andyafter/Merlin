@@ -5,6 +5,7 @@ from pyspark.sql import DataFrame, Row
 
 from merlin.logger import get_logger
 from merlin.metric import Definition, OutputMetric
+from merlin.values import StructuredValue
 
 FUNCTIONAL_VARIABLE_NAME_PREFIX = re.compile(r"^func_var_")
 
@@ -42,13 +43,13 @@ def row_mapper(row: Row, definition: Definition) -> dict:
     for col in functional_variables:
         func_key = FUNCTIONAL_VARIABLE_NAME_PREFIX.sub('', col)
         if col in row_dict.keys():
-            output_metric.add_func_var(func_key, row[col])
+            output_metric.add_func_var(StructuredValue(row[col], func_key))
 
     managed_cols.extend(functional_variables)
     group_map_keys = row_dict.keys() - managed_cols
 
     for col in group_map_keys:
-        output_metric.add_group_value(col, row[col])
+        output_metric.add_group_value(StructuredValue(row[col], col))
 
     return output_metric.asdict()
 
