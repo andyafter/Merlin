@@ -72,3 +72,6 @@ class Stage:
 
         stage_instance.engine_context = self.engine_context
         return stage_instance
+
+    def __str__(self):
+        return self.id

@@ -59,6 +59,7 @@ class Metric:
         d = {s: self.__getattribute__(s) for s in self.__slots__}
         return "{}".format(d)
 
+
 class OutputMetric(Metric):
     __slots__ = ['group_keys', 'group_map', 'func_var', 'measure_time',
                  'compute_time', 'val', 'func_vars']
@@ -171,6 +172,7 @@ class Definition:
     """
     Simple container for metrics
     """
+    metric: SourceMetric
 
     def __init__(self, metric: SourceMetric):
         self.stages = []
@@ -178,6 +180,7 @@ class Definition:
 
     def add_stage(self, stage: Stage):
         self.stages.append(stage)
+        return self
 
     def __str__(self):
-        "metric:{}, stages[]".format(self.metric, ",".join(self.stages))
+        return "metric:{}, stages[]".format(self.metric, ",".join([str(s) for s in self.stages]))

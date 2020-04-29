@@ -19,19 +19,19 @@ class Reader:
 
     __slots__ = ["user", "password", "uri", "type", 'driver']
 
-    def __init__(self, user: str, password: str, uri: str, type: ReaderType, driver=None):
+    def __init__(self, user: str, password: str, uri: str, reader_type: ReaderType, driver=None):
         """
 
         :param user: username to use for JDBC
         :param password:  password to use for JDBC
         :param uri:   either jdbc:// or file:// or s3://
-        :param type: ReaderType
+        :param reader_type: ReaderType
         :param driver: class to load when loading the driver (Java class)
         """
         self.user = user
         self.password = password
         self.uri = urlparse(uri)
-        self.type = type
+        self.type = reader_type
         self.driver = driver
 
 
@@ -53,12 +53,11 @@ class Context:
     The context of the engine
     """
 
-    __slots__ = ["metric_definitions", "env", "compute_datetime", "engine", "metric_table",
+    __slots__ = ["metric_definitions", "env", "compute_datetime", "metric_table",
                  "metric_data_store", "reader", "writer"]
 
     def __init__(self, metric_definitions: List[Definition], env: str,
                  compute_datetime: datetime,
-                 engine,
                  metric_table: str,
                  metric_data_store: str,
                  reader: Reader,
@@ -77,7 +76,6 @@ class Context:
         self.metric_definitions = metric_definitions
         self.compute_datetime = compute_datetime
         self.env = env
-        self.engine = engine
         self.metric_table = metric_table
         self.metric_data_store = urlparse(metric_data_store)
         self.reader = reader
