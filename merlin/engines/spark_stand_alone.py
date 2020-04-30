@@ -39,7 +39,7 @@ class SparkStandAlone(AbstractEngine):
             size = stage_df.count()
             self.LOGGER.info("Writing to %d ", size)
             # TODO change compute suitable values for repartitioning
-            output_df = self.to_metric_schema(stage_df, definition, 2, 500)
+            output_df = self.to_metric_schema(stage_df, stage, definition, 2, 500)
 
             self.LOGGER.info("Writing to %s ", self.context.writer.uri)
             # output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \

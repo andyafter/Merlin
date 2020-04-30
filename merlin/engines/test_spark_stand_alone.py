@@ -17,24 +17,25 @@ class MyTestCase(unittest.TestCase):
         spark = SparkSession.builder.config(conf=conf).enableHiveSupport().getOrCreate()
         test_df = spark.read.json("test/data/synthetic_data.json.gz")
         test_df.createOrReplaceTempView("input_data")
-        spark.sql("select * from input_data").show(10, 50)
-        source_metric = SourceMetric(metric_id="volumetric_flow_rate",
+        spark.sql("select from_unixtime(time) time, location_id, data  from input_data").show(10, 80)
+        source_metric = SourceMetric(metric_id="p90_sensor_0",
                                      time_window=500,
-                                     func_expr="mass / density / time",
-                                     horizontal_level=1,
-                                     vertical_level=0,
+                                     func_expr="P90(sensor[0]) every 5 min",
                                      version="1.0",
-                                     func_vars=["mass", "density"])
+                                     func_vars=["sample_size", "samples"])
         stage = Stage(execution_type=StageType.spark_sql,
                       output_type=StageOutputType.store,
                       sql_query="""
                       select cast(from_unixtime(floor(time/500)*500) as timestamp) as measure_time,
-                      methane_id, 
-                      max(data[0]) val,
-                      collect_set(data[0]) func_var_samples
+                      location_id, 
+                      approx_percentile(data[0], 0.90) val,
+                      count(1) sample_size,
+                      collect_set(data[0]) samples
                       from input_data
                       group by 1,2
-                      """
+                      """,
+                      horizontal_level=1,
+                      vertical_level=0
                       )
         definition = Definition(source_metric).add_stage(stage)
 

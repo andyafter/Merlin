@@ -33,11 +33,9 @@ class Metric:
     Basic definition of a metric
     """
 
-    __slots__ = ['id', 'time_window', 'func_expr', 'horizontal_level', 'vertical_level',
-                 'version']
+    __slots__ = ['id', 'time_window', 'func_expr', 'version']
 
-    def __init__(self, metric_id: str, time_window: int, func_expr: str,
-                 horizontal_level: int, vertical_level: int, version: str):
+    def __init__(self, metric_id: str, time_window: int, func_expr: str, version: str):
         """
 
         :param metric_id: identifier of the metric
@@ -51,8 +49,6 @@ class Metric:
         self.id = metric_id
         self.time_window = time_window
         self.func_expr = func_expr
-        self.horizontal_level = horizontal_level
-        self.vertical_level = vertical_level
         self.version = version
 
     def __str__(self):
@@ -62,7 +58,8 @@ class Metric:
 
 class OutputMetric(Metric):
     __slots__ = ['group_keys', 'group_map', 'func_var', 'measure_time',
-                 'compute_time', 'val', 'func_vars']
+                 'compute_time', 'val', 'func_vars', 'horizontal_level',
+                 'vertical_level']
 
     SPARK_TYPE = MapType(StringType(), StructType([
         StructField("type", StringType(), True),
@@ -100,7 +97,8 @@ class OutputMetric(Metric):
 
     ])
 
-    def __init__(self, metric: Metric, val: float, measure_time: datetime):
+    def __init__(self, metric: Metric, val: float, measure_time: datetime, horizontal_level: int,
+                 vertical_level: int):
         """
         :param val: value (float)
         :param measure_time: time when the metric was computed
@@ -108,8 +106,7 @@ class OutputMetric(Metric):
         Note that compute time is initialised automatically but it can be overwritten
         """
 
-        super().__init__(metric.id, metric.time_window, metric.func_expr,
-                         metric.horizontal_level, metric.vertical_level, metric.version)
+        super().__init__(metric.id, metric.time_window, metric.func_expr, metric.version)
 
         self.measure_time = measure_time
         self.compute_time = datetime.now()
@@ -117,6 +114,8 @@ class OutputMetric(Metric):
         self.group_keys = []
         self.group_map = {}
         self.func_vars = {}
+        self.horizontal_level = horizontal_level
+        self.vertical_level = vertical_level
 
     def add_group_value(self, value: StructuredValue):
         ##TODO Warn if same value is added twice
@@ -150,21 +149,19 @@ class OutputMetric(Metric):
 class SourceMetric(Metric):
 
     def __init__(self, metric_id: str, time_window: int, func_expr: str,
-                 horizontal_level: int, vertical_level: int, version: str, func_vars=[]):
+                 version: str, func_vars=[]):
         """
 
         :param metric_id: identifier of the metric
         :param time_window: how often in second the metric is computed
         :param func_expr:
-        :param horizontal_level:
-        :param vertical_level:
         :param version: version identifier
         :param func_vars: list of strings for the functional variables
 
 
         """
 
-        super().__init__(metric_id, time_window, func_expr, horizontal_level, vertical_level, version)
+        super().__init__(metric_id, time_window, func_expr, version)
         self.func_vars = func_vars
 
 

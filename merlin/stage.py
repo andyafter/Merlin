@@ -22,14 +22,14 @@ class StageOutputType(Enum):
 class Stage:
 
     def __init__(self, execution_type: StageType, output_type=StageOutputType.view,
-                 stage_id=str(uuid.uuid4()), sql_query=None, h_lvl=0, v_lvl=0,
+                 stage_id=str(uuid.uuid4()), sql_query=None, horizontal_level=0, vertical_level=0,
                  view_name=None, py_mod=None, py_stage_args=None, engine_context=None):
         self.id = stage_id
         self.execution_type = execution_type
         self.sql_query = sql_query
         self.output_type = output_type
-        self.h_lvl = h_lvl
-        self.v_lvl = v_lvl
+        self.horizontal_level = horizontal_level
+        self.vertical_level = vertical_level
         self.view_name = view_name
         self.py_stage = py_mod
         self.py_stage_args = py_stage_args

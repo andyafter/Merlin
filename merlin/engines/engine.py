@@ -5,6 +5,7 @@ from pyspark.sql import DataFrame, Row
 
 from merlin.logger import get_logger
 from merlin.metric import Definition, OutputMetric
+from merlin.stage import Stage
 from merlin.values import StructuredValue
 
 FUNCTIONAL_VARIABLE_NAME_PREFIX = re.compile(r"^func_var_")
@@ -18,19 +19,25 @@ class AbstractEngine(ABC):
     def compute(cls, metric_definition: Definition):
         pass
 
-    def to_metric_schema(self, data_frame: DataFrame, definition: Definition, output_partition: int,
+    def to_metric_schema(self, data_frame: DataFrame, stage: Stage,
+                         definition: Definition, output_partition: int,
                          repartition_count: int) -> DataFrame:
-        out_rdd = data_frame.repartition(repartition_count).rdd.map(lambda row: row_mapper(row, definition))
+        out_rdd = data_frame.repartition(repartition_count).rdd.map(lambda row: row_mapper(row, stage,
+                                                                                           definition))
         out_df = out_rdd.toDF(OutputMetric.SPARK_OUTPUT_SCHEMA).repartition(output_partition)
         return out_df
 
 
-def row_mapper(row: Row, definition: Definition) -> dict:
+def row_mapper(row: Row, stage: Stage, definition: Definition) -> dict:
     managed_cols = ['val', 'measure_time']
     val = row['val']
     measure_time = row['measure_time']
 
-    output_metric = OutputMetric(definition.metric, val=val, measure_time=measure_time)
+    output_metric = OutputMetric(definition.metric, val=val,
+                                 measure_time=measure_time,
+                                 horizontal_level=stage.horizontal_level,
+                                 vertical_level=stage.vertical_level
+                                 )
 
     functional_variables = definition.metric.func_vars.copy()
     row_dict = row.asDict()
