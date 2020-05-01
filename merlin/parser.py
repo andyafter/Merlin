@@ -1,10 +1,11 @@
 import yaml
 
-from merlin.metric import SourceMetric
+from merlin.metric import SourceMetric, Definition
+from merlin.stage import Stage
 from merlin.utils import LOGGER
 
 
-class MetricParser:
+class MetricParser():
     def __init__(self):
         # the metric_fields is a set of metric field strings. This is for validation use.
         self.metric_fields = set(['id', 'time', 'w_time', 'group_map', 'group_keys', 'func_map', 'func_expr', 'func_vars', 'compute_time', 'v_lvl', 'h_lvl', 'stages', 'description', 'version'])
@@ -22,5 +23,14 @@ class MetricParser:
                 return None
 
         m = SourceMetric(parsed['id'], parsed['w_time'], parsed['func_expr'], parsed['version'])
+        if 'stages' not in keys:
+            print("not in here")
+            return Definition(m)
 
-        return m
+        definition = Definition(m)
+
+        for s in parsed['stages']:
+            # TODO: write validator for stage also
+            definition.add_stage(Stage(**s))
+
+        return definition
