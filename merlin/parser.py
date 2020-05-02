@@ -17,5 +17,6 @@ class MetricParser():
 
             for object_map in metrics_list:
                 parsed[object_map['id']] = object_map
+        # TODO: use set to check if the dictionary is correct and ready for the source metrics
 
         return [SourceMetric(**parsed[metric]) for metric in parsed]
