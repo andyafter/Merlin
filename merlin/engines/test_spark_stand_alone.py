@@ -1,3 +1,4 @@
+import tempfile
 import unittest
 from datetime import datetime
 
@@ -10,9 +11,11 @@ from merlin.metric import SourceMetric, Definition
 from merlin.stage import Stage, StageType, StageOutputType
 
 
-class MyTestCase(unittest.TestCase):
+class SparkStandAloneTestCase(unittest.TestCase):
 
     def test_engine(self):
+        temp_dir = tempfile.mkdtemp()
+        print("Temp dir {}".format(temp_dir))
         conf = SparkConf().setAppName("unit_test").setMaster("local[2]")
         spark = SparkSession.builder.config(conf=conf).enableHiveSupport().getOrCreate()
         test_df = spark.read.json("test/data/synthetic_data.json.gz")
@@ -47,7 +50,7 @@ class MyTestCase(unittest.TestCase):
         )
 
         writer = ctx.Writer(
-            uri="file://tmp/metrics"
+            uri=temp_dir
         )
 
         context = ctx.Context(metric_definitions=[definition],
@@ -60,7 +63,14 @@ class MyTestCase(unittest.TestCase):
 
                               )
         engine = SparkStandAlone(context=context, spark_session=spark)
-        engine.compute(definition)
+        partitions = engine.compute(definition)
+        self.assertEqual(len(partitions), 1)
+        expected_keys = ['id', 'compute_date', 'compute_hour', 'horizontal_level',
+                         'vertical_level']
+        for partition_records in partitions.values():
+            for row in partition_records:
+                for k in expected_keys:
+                    self.assertIn(k, row.asDict().keys())
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ class SparkStandAlone(AbstractEngine):
         self.context = context
 
     @timed
-    def compute(self, metric_definition: Definition):
+    def compute(self, metric_definition: Definition) -> dict:
         self.LOGGER.info("Computing metric {} ".format(metric_definition))
 
         stages = metric_definition.stages
@@ -29,7 +29,7 @@ class SparkStandAlone(AbstractEngine):
         return stored_partitions
 
     @timed
-    def process_sql_stage(self, stage: Stage, definition: Definition):
+    def process_sql_stage(self, stage: Stage, definition: Definition) -> list:
 
         stage_df = self.spark.sql(stage.sql_query)
         stored_partitions = []
@@ -41,11 +41,10 @@ class SparkStandAlone(AbstractEngine):
             # TODO change compute suitable values for repartitioning
             output_df = self.to_metric_schema(stage_df, stage, definition, 2, 500)
 
-            self.LOGGER.info("Writing to %s ", self.context.writer.uri)
-            # output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \
-            #     format("orc"). \
-            #     save(self.context.writer.uri)
-            output_df.show(100, 100)
+            self.LOGGER.info("Writing to %s ", self.context.writer.uri.geturl())
+            output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \
+                format("orc").mode("append"). \
+                save(self.context.writer.uri.geturl())
 
             partitions = output_df.select(*self.DEFAULT_PARTITION_COLUMNS).distinct().collect()
             stored_partitions.extend(partitions)

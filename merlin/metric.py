@@ -20,6 +20,7 @@
 # TODO add serializer and desirealiser from and to json
 
 from datetime import datetime
+from decimal import Decimal
 
 from pyspark.sql.types import StructType, StructField, StringType, LongType, BooleanType, DoubleType, ArrayType, \
     MapType
@@ -108,9 +109,9 @@ class OutputMetric(Metric):
 
         super().__init__(metric.id, metric.time_window, metric.func_expr, metric.version)
 
-        self.measure_time = measure_time
+        self.measure_time = to_datetime(measure_time)
         self.compute_time = datetime.now()
-        self.val = val
+        self.val = float(val)
         self.group_keys = []
         self.group_map = {}
         self.func_vars = {}
@@ -181,3 +182,15 @@ class Definition:
 
     def __str__(self):
         return "metric:{}, stages[]".format(self.metric, ",".join([str(s) for s in self.stages]))
+
+
+def to_datetime(time) -> datetime:
+    raw_type = type(time)
+
+    if raw_type is datetime:
+        return time
+
+    if raw_type in [int, float, Decimal]:
+        return datetime.fromtimestamp(time)
+
+    raise (Exception("Un-parsable time {} of type {}".format(time, raw_type)))
