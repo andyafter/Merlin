@@ -23,6 +23,8 @@ class SparkStandAlone(AbstractEngine):
 
             if stage.execution_type == StageType.spark_sql:
                 stored_partitions[stage.id] = self.process_sql_stage(stage, metric_definition)
+            elif stage.execution_type == StageType.python:
+                self.process_python_stage(stage, metric_definition)
             else:
                 self.LOGGER("I don't know how to compute %s stage", stage.execution_type)
 
@@ -53,3 +55,7 @@ class SparkStandAlone(AbstractEngine):
             stage_df.createOrReplaceTempView(stage.view_name)
 
         return stored_partitions
+
+    @timed
+    def process_python_stage(self, stage: Stage, definition: Definition):
+        stage.py_stage.run(self.context, self.spark, stage, definition)
