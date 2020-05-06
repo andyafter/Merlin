@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -55,6 +56,9 @@ class SparkStandAloneTestCase(unittest.TestCase):
                 for k in expected_keys:
                     self.assertIn(k, row.asDict().keys())
 
+        spark.stop()
+        clean_up()
+
     def test_python_stage(self):
         temp_dir = tempfile.mkdtemp()
         print("Temp dir {}".format(temp_dir))
@@ -107,6 +111,9 @@ class SparkStandAloneTestCase(unittest.TestCase):
                 for k in expected_keys:
                     self.assertIn(k, row.asDict().keys())
 
+        spark.stop()
+        clean_up()
+
 
 def get_engine(definition, spark, temp_dir):
     reader = ctx.Reader(
@@ -129,6 +136,10 @@ def get_engine(definition, spark, temp_dir):
                           )
     engine = SparkStandAlone(context=context, spark_session=spark)
     return engine
+
+
+def clean_up():
+    shutil.rmtree("metastore_db", ignore_errors=True)
 
 
 if __name__ == '__main__':
