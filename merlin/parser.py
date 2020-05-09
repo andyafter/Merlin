@@ -8,7 +8,8 @@ class MetricParser():
         return
 
     @staticmethod
-    def load_metrics(metric_db="json/metric_definitions.json"):
+    def load_metrics(metric_db="yaml/metric_definition.yml"):
+
         parsed = {}
         with open(metric_db, 'r') as file_handler:
             metrics_list = json.load(file_handler)
@@ -18,5 +19,6 @@ class MetricParser():
             for object_map in metrics_list:
                 parsed[object_map['id']] = object_map
         # TODO: use set to check if the dictionary is correct and ready for the source metrics
+        # when reading decide which stage it is
 
         return [SourceMetric(**parsed[metric]) for metric in parsed]
