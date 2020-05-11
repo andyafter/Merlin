@@ -1,6 +1,6 @@
 id: test_metric
 description: Test Metric Definition
-fun_expr: test_data/average_temperature
+func_expr: test_data/average_temperature
 stages:
 - execution_type: python
   output_type: 0
@@ -10,6 +10,7 @@ stages:
   output_type: 1
   lvl: 3
 w_time: 300
-fun_vars:
+func_vars:
 - location
 - average_temperature
+version: 1

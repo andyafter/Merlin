@@ -1,24 +1,25 @@
-import json
+import yaml
 
 from merlin.metric import SourceMetric
-
+from merlin.utils import LOGGER
 
 class MetricParser():
     def __init__(self):
+        # the metric_fields is a set of metric field strings. This is for validation use.
+        self.metric_fields = set(['id', 'time', 'w_time', 'group_map', 'group_keys', 'func_map', 'func_expr', 'func_vars', 'compute_time', 'v_lvl', 'h_lvl', 'stages', 'description', 'version'])
         return
 
-    @staticmethod
-    def load_metrics(metric_db="yaml/metric_definition.yml"):
+    def load_metrics(self, metric_db="merlin/yaml/metric_definition.yml"):
 
         parsed = {}
         with open(metric_db, 'r') as file_handler:
-            metrics_list = json.load(file_handler)
-            if metrics_list is None:
-                return parsed
+            parsed = yaml.load(file_handler, Loader=yaml.FullLoader)
+            keys = set(parsed.keys())
 
-            for object_map in metrics_list:
-                parsed[object_map['id']] = object_map
-        # TODO: use set to check if the dictionary is correct and ready for the source metrics
-        # when reading decide which stage it is
+            if not keys.issubset(self.metric_fields):
+                LOGGER.info("Error: wrong metric field in definition.")
+                return None
 
-        return [SourceMetric(**parsed[metric]) for metric in parsed]
+        m = SourceMetric(parsed['id'], parsed['w_time'], parsed['func_expr'], parsed['version'])
+
+        return m
