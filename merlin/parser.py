@@ -29,14 +29,8 @@ class MetricParser():
 
         definition = Definition(m)
 
-<<<<<<< HEAD
         for s in parsed['stages']:
             # TODO: write validator for stage also
             definition.add_stage(Stage(**s))
-=======
-            for object_map in metrics_list:
-                parsed[object_map['id']] = object_map
-        # TODO: use set to check if the dictionary is correct and ready for the source metrics
->>>>>>> a643163... moved to test package
 
         return definition
