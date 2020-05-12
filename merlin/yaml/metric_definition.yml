@@ -2,12 +2,13 @@
   description: Test Metric Definition
   func_expr: test_data/average_temperature
   stages:
-    - execution_type: python
-      output_type: 0
+    - stage_type: python
+      output_type: view
       horizontal_level: 3  # direct naming convention from the stage class definition
+      py_mod: where.the.python_mod.is.stored
     - sql_query: test_metric.sql
-      execution_type: store
-      output_type: 1
+      stage_type: spark_sql
+      output_type: store
       horizontal_level: 3
   time_window: 300
   func_vars:
@@ -19,12 +20,13 @@
   description: Test Metric Definition
   func_expr: test_data/average_temperature
   stages:
-    - execution_type: python
-      output_type: 0
+    - stage_type: python
+      output_type: view
+      py_mod: where.the.python_mod.is.stored
       horizontal_level: 3  # direct naming convention from the stage class definition
     - sql_query: test_metric.sql
-      execution_type: store
-      output_type: 1
+      stage_type: spark_sql
+      output_type: store
       horizontal_level: 3
   time_window: 300
   func_vars:

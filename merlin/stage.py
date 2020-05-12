@@ -21,22 +21,24 @@ class StageOutputType(Enum):
 
 
 class Stage:
+    horizontal_level: int
+    vertical_level: int
 
-    def __init__(self, execution_type: StageType, output_type=StageOutputType.view,
+    def __init__(self, stage_type: StageType, output_type=StageOutputType.view,
                  stage_id=str(uuid.uuid4()), sql_query=None, horizontal_level=0, vertical_level=0,
                  view_name=None, py_mod=None, py_stage_args=None):
         self.id = stage_id
-        self.execution_type = execution_type
+        self.stage_type = stage_type
         self.sql_query = sql_query
         self.output_type = output_type
         self.horizontal_level = horizontal_level
         self.vertical_level = vertical_level
         self.view_name = view_name
-        self.py_stage_cls = py_mod
+        self.py_mod = py_mod
         self.py_stage_args = py_stage_args
         self.validate()
 
-        if self.execution_type == StageType.python:
+        if self.stage_type == StageType.python:
             self.py_stage = self.__load_custom_stage__()
         else:
             self.py_stage = None
@@ -48,6 +50,13 @@ class Stage:
         return self.output_type == StageOutputType.store
 
     def validate(self):
+        """
+       1 . validate data types
+       2.  if stage is python  => py_stage and
+
+        :return:
+        """
+
         self.validate_python_stage()
 
     def validate_python_stage(self):
@@ -55,8 +64,8 @@ class Stage:
         Validate loading that py_stage is not none
         :return:
         """
-        if self.execution_type == StageType.python:
-            assert self.py_stage_cls is not None
+        if self.stage_type == StageType.python:
+            assert self.py_mod is not None
 
     def __load_custom_stage__(self) -> BaseCustomStage:
         """
@@ -64,7 +73,7 @@ class Stage:
         :param name of python modules:
         :return:
         """
-        stage_definition = importlib.import_module(self.py_stage_cls)
+        stage_definition = importlib.import_module(self.py_mod)
         stage_class = stage_definition.Loader().stage_class()
 
         if self.py_stage_args is None:

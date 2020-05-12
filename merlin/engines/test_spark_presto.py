@@ -26,7 +26,7 @@ class SparkPrestoTestCase(unittest.TestCase):
                                      func_expr="max(sensor[0]) every 5 min",
                                      version="1.0",
                                      func_vars=["sample_size", "min_val"])
-        stage = Stage(execution_type=StageType.presto_sql,
+        stage = Stage(stage_type=StageType.presto_sql,
                       output_type=StageOutputType.store,
                       sql_query="""
                       select cast(time/500 as INTEGER)*500 as measure_time,

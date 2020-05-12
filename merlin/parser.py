@@ -3,7 +3,7 @@ from typing import List
 import yaml
 
 from merlin.metric import SourceMetric, Definition
-from merlin.stage import Stage
+from merlin.stage import Stage, StageType, StageOutputType
 
 
 class MetricParserException(Exception):
@@ -35,7 +35,14 @@ class MetricParser:
                 metric_def = Definition(source_metric)
 
                 for s in d['stages']:
-                    metric_def.add_stage(Stage(**s))
+                    stage_init_param = s.copy()
+                    if 'sql_query' in s.keys():
+                        # TODO load sql from file
+                        # stage_init_param['sql_query'] = actual file content
+                        pass
+                    stage_init_param['output_type'] = StageOutputType[s['output_type']]
+                    stage_init_param['stage_type'] = StageType[s['stage_type']]
+                    metric_def.add_stage(Stage(**stage_init_param))
 
         return definitions
 

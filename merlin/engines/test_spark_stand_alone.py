@@ -30,7 +30,7 @@ class SparkStandAloneTestCase(unittest.TestCase):
                                      func_expr="P90(sensor[0]) every 5 min",
                                      version="1.0",
                                      func_vars=["sample_size", "samples"])
-        stage = Stage(execution_type=StageType.spark_sql,
+        stage = Stage(stage_type=StageType.spark_sql,
                       output_type=StageOutputType.store,
                       sql_query="""
                       select cast(from_unixtime(floor(time/500)*500) as timestamp) as measure_time,
@@ -80,14 +80,14 @@ class SparkStandAloneTestCase(unittest.TestCase):
                                      func_vars=["sample_size", "samples"])
 
         compute_stage = Stage(
-            execution_type=StageType.python,
+            stage_type=StageType.python,
             output_type=StageOutputType.view,
             py_mod="custom_stages.sample_stage",
             py_stage_args={'lookback_window': 5, 'start_date': datetime(2020, 1, 10, 0, 3)}
         )
         definition = Definition(source_metric).add_stage(compute_stage)
 
-        storage_stage = Stage(execution_type=StageType.spark_sql,
+        storage_stage = Stage(stage_type=StageType.spark_sql,
                               output_type=StageOutputType.store,
                               sql_query="""
                       select * from test_metric

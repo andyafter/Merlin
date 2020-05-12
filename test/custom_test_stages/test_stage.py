@@ -22,7 +22,7 @@ class StageTestCase(unittest.TestCase):
 
         sys.path.append(zip_filename)
         s = Stage(
-            execution_type=StageType.python,
+            stage_type=StageType.python,
             output_type=StageOutputType.view,
             py_mod="custom_stages.sample_stage",
             py_stage_args={'lookback_window': 5, 'start_date': datetime(2020, 1, 10, 0, 3)}
