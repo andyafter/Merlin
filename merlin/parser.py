@@ -29,6 +29,9 @@ class MetricParser:
                 if 'stages' not in d.keys():
                     raise MetricParserException("Stages not defined ")
 
+                if not isinstance(d['stages'], list):
+                    raise MetricParserException("Stages not a list ")
+
                 metric_def = Definition(source_metric)
 
                 for s in d['stages']:
