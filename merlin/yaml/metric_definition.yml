@@ -1,16 +1,36 @@
-id: test_metric
-description: Test Metric Definition
-func_expr: test_data/average_temperature
-stages:
-- execution_type: python
-  output_type: 0
-  horizontal_level: 3  # direct naming convention from the stage class definition
-- sql_query: test_metric.sql
-  execution_type: store
-  output_type: 1
-  horizontal_level: 3
-w_time: 300
-func_vars:
-- location
-- average_temperature
-version: 1
+- metric_id: test_metric_1
+  description: Test Metric Definition
+  func_expr: test_data/average_temperature
+  stages:
+    - execution_type: python
+      output_type: 0
+      horizontal_level: 3  # direct naming convention from the stage class definition
+    - sql_query: test_metric.sql
+      execution_type: store
+      output_type: 1
+      horizontal_level: 3
+  time_window: 300
+  func_vars:
+    - location
+    - average_temperature
+  version: 1
+
+- metric_id: test_metric_2
+  description: Test Metric Definition
+  func_expr: test_data/average_temperature
+  stages:
+    - execution_type: python
+      output_type: 0
+      horizontal_level: 3  # direct naming convention from the stage class definition
+    - sql_query: test_metric.sql
+      execution_type: store
+      output_type: 1
+      horizontal_level: 3
+  time_window: 300
+  func_vars:
+    - location
+    - average_temperature
+  version: 1
+
+
+

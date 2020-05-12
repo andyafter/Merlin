@@ -1,36 +1,60 @@
+from typing import List
+
 import yaml
 
 from merlin.metric import SourceMetric, Definition
 from merlin.stage import Stage
-from merlin.utils import LOGGER
 
 
-class MetricParser():
+class MetricParserException(Exception):
+
+    def __init__(self, message):
+        super()
+
+
+class MetricParser:
+
     def __init__(self):
-        # the metric_fields is a set of metric field strings. This is for validation use.
-        self.metric_fields = set(['id', 'time', 'w_time', 'group_map', 'group_keys', 'func_map', 'func_expr', 'func_vars', 'compute_time', 'v_lvl', 'h_lvl', 'stages', 'description', 'version'])
-        return
+        self.metric_fields = set(['metric_id', 'time_window', 'func_expr', 'version'])
 
-    def load_metrics(self, metric_db="merlin/yaml/metric_definition.yml"):
+    def load_metrics(self, metric_db="merlin/yaml/metric_definition.yml") -> List[Definition]:
 
-        parsed = {}
+        definitions = []
         with open(metric_db, 'r') as file_handler:
-            parsed = yaml.load(file_handler, Loader=yaml.FullLoader)
-            keys = set(parsed.keys())
+            unparsed_definitions = yaml.load(file_handler, Loader=yaml.FullLoader)
 
-            if not keys.issubset(self.metric_fields):
-                LOGGER.info("Error: wrong metric field in definition.")
-                return None
+            for d in unparsed_definitions:
+                source_metric = self.parse_source_metric(d)
 
-        m = SourceMetric(parsed['id'], parsed['w_time'], parsed['func_expr'], parsed['version'])
-        if 'stages' not in keys:
-            print("not in here")
-            return Definition(m)
+                if 'stages' not in d.keys():
+                    raise MetricParserException("Stages not defined ")
 
-        definition = Definition(m)
+                metric_def = Definition(source_metric)
 
-        for s in parsed['stages']:
-            # TODO: write validator for stage also
-            definition.add_stage(Stage(**s))
+                for s in d['stages']:
+                    metric_def.add_stage(Stage(**s))
 
-        return definition
+        return definitions
+
+    def parse_source_metric(self, source_map) -> SourceMetric:
+
+        keys = set(source_map.keys())
+        for k in self.metric_fields:
+            if k not in keys:
+                raise MetricParserException("Missing field {} in  {}".format(k, source_map))
+
+        assert isinstance(source_map['metric_id'], str)
+        assert isinstance(source_map['time_window'], int)
+        assert isinstance(source_map['func_expr'], str)
+
+        source_metric = SourceMetric(
+            metric_id=source_map['metric_id'],
+            time_window=source_map['time_window'],
+            version=str(source_map['version']),
+            func_expr=source_map['func_expr']
+        )
+        if 'func_vars' in keys:
+            assert isinstance(source_map['func_vars'], list)
+            source_metric.func_vars = source_map['func_vars']
+
+        return source_metric
