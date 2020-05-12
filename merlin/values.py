@@ -18,6 +18,7 @@
 #
 
 import json
+from decimal import Decimal
 from enum import Enum
 
 
@@ -131,6 +132,10 @@ class StructuredValue:
             self.__list_handle__()
             self.composite_type = CompositeTypes.LIST
 
+        elif raw_type is Decimal:
+            self.__handle_decimal__()
+            self.composite_type = None
+
     def __map_handle__(self):
         """
         handle a map in input
@@ -182,6 +187,15 @@ class StructuredValue:
         else:
             self.type = "vec_string"
             self.list_value = [json.dumps(v) for v in input_list]
+
+    def __handle_decimal__(self):
+        decimal = self.__input_value__
+        if Decimal(decimal).remainder_near(1).is_zero():
+            self.atomic_value = AtomicValue(int(decimal))
+        else:
+            self.atomic_value = AtomicValue(float(decimal))
+
+        self.type = self.atomic_value.type.name.lower()
 
     def asdict(self):
 
