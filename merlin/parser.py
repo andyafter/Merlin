@@ -1,6 +1,8 @@
 from typing import List
 
 import yaml
+from zipfile import ZipFile
+from importlib import import_module
 
 from merlin.metric import SourceMetric, Definition
 from merlin.stage import Stage, StageType, StageOutputType
@@ -35,16 +37,30 @@ class MetricParser:
                 metric_def = Definition(source_metric)
 
                 for s in d['stages']:
-                    stage_init_param = s.copy()
-                    if 'sql_query' in s.keys():
-                        # TODO load sql from file
-                        # stage_init_param['sql_query'] = actual file content
-                        pass
-                    stage_init_param['output_type'] = StageOutputType[s['output_type']]
-                    stage_init_param['stage_type'] = StageType[s['stage_type']]
-                    metric_def.add_stage(Stage(**stage_init_param))
+                    metric_def.add_stage(self.get_stage(s))
 
         return definitions
+
+    def get_stage(self, s) -> Stage:
+        stage_init_param = s.copy()
+        stage_init_param['output_type'] = StageOutputType[s['output_type']]
+        stage_init_param['stage_type'] = StageType[s['stage_type']]
+
+        if s["stage_type"] == 'python':
+            if "py_mod" not in s.keys():
+                raise MetricParserException(f"Incorrect YAML Definition: py_mod not found ")
+
+        if s["stage_type"] == 'sql_query':
+            if 'sql_query' not in s.keys():
+                raise MetricParserException(f"Incorrect YAML Definition: sql_query not found ")
+
+            # TODO: find better location for sql zip
+            with ZipFile("../test/sql.zip", 'r') as zip_file:
+                query = zip_file.read(f"sql/{stage_init_param['sql_query']}")
+                stage_init_param['sql_query'] = query
+
+        print(stage_init_param)
+        return Stage(**stage_init_param)
 
     def parse_source_metric(self, source_map) -> SourceMetric:
 

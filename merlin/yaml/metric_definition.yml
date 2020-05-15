@@ -5,7 +5,7 @@
     - stage_type: python
       output_type: view
       horizontal_level: 3  # direct naming convention from the stage class definition
-      py_mod: where.the.python_mod.is.stored
+      py_mod: merlin.modules.DefaultStage
     - sql_query: test_metric.sql
       stage_type: spark_sql
       output_type: store
@@ -22,7 +22,7 @@
   stages:
     - stage_type: python
       output_type: view
-      py_mod: where.the.python_mod.is.stored
+      py_mod: merlin.modules.DefaultStage
       horizontal_level: 3  # direct naming convention from the stage class definition
     - sql_query: test_metric.sql
       stage_type: spark_sql

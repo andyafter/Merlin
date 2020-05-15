@@ -20,6 +20,12 @@ class StageOutputType(Enum):
     cached_view = 2
 
 
+class StageException(Exception):
+
+    def __init__(self, message):
+        super()
+
+
 class Stage:
     horizontal_level: int
     vertical_level: int
@@ -53,9 +59,17 @@ class Stage:
         """
        1 . validate data types
        2.  if stage is python  => py_stage and
-
         :return:
         """
+        if self.stage_type not in StageType:
+            raise StageException("StageType inconsistent ")
+
+        if self.stage_type == StageType.python:
+            if self.py_mod is None:
+                raise StageException("PyMod cannot be None if stage type is Python ")
+        else:
+            if self.sql_query is None:
+                raise StageException("Sql Query cannot be None if stage type is not Python ")
 
         self.validate_python_stage()
 
@@ -77,9 +91,9 @@ class Stage:
         stage_class = stage_definition.Loader().stage_class()
 
         if self.py_stage_args is None:
-            stage_instance = stage_class()
+            stage_instance = stage_class.run()
         else:
-            stage_instance = stage_class(**self.py_stage_args)
+            stage_instance = stage_class.run(**self.py_stage_args)
 
         return stage_instance
 
