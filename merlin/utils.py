@@ -18,3 +18,14 @@ def timed(func):
         return result
 
     return wrapper
+
+
+def get_schema_for_env(env) -> str:
+    """
+    Get the default schema for the enviroment
+    :param env Enviroment
+    """
+    if env == "prd":
+        return "grab_x"
+
+    return "grab_x_{}".format(env)
