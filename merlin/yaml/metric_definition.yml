@@ -1,0 +1,38 @@
+- metric_id: test_metric_1
+  description: Test Metric Definition
+  func_expr: test_data/average_temperature
+  stages:
+    - stage_type: python
+      output_type: view
+      horizontal_level: 3  # direct naming convention from the stage class definition
+      py_mod: merlin.modules.DefaultStage
+    - sql_query: test_metric.sql
+      stage_type: spark_sql
+      output_type: store
+      horizontal_level: 3
+  time_window: 300
+  func_vars:
+    - location
+    - average_temperature
+  version: 1
+
+- metric_id: test_metric_2
+  description: Test Metric Definition
+  func_expr: test_data/average_temperature
+  stages:
+    - stage_type: python
+      output_type: view
+      py_mod: merlin.modules.DefaultStage
+      horizontal_level: 3  # direct naming convention from the stage class definition
+    - sql_query: test_metric.sql
+      stage_type: spark_sql
+      output_type: store
+      horizontal_level: 3
+  time_window: 300
+  func_vars:
+    - location
+    - average_temperature
+  version: 1
+
+
+

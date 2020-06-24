@@ -148,6 +148,7 @@ class OutputMetric(Metric):
 
 
 class SourceMetric(Metric):
+    __slots__ = ['metric_id', 'time_window', 'func_expr', 'version', 'func_vars']
 
     def __init__(self, metric_id: str, time_window: int, func_expr: str,
                  version: str, func_vars=[]):
