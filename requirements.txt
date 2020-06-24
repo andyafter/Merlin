@@ -1,3 +1,3 @@
-paver
-pyspark
-pytest
+paver~=1.3.4
+pyspark~=2.4.5
+pyyaml~=5.3.1

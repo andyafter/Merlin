@@ -20,6 +20,7 @@
 # TODO add serializer and desirealiser from and to json
 
 from datetime import datetime
+from decimal import Decimal
 
 from pyspark.sql.types import StructType, StructField, StringType, LongType, BooleanType, DoubleType, ArrayType, \
     MapType
@@ -33,11 +34,9 @@ class Metric:
     Basic definition of a metric
     """
 
-    __slots__ = ['id', 'time_window', 'func_expr', 'horizontal_level', 'vertical_level',
-                 'version']
+    __slots__ = ['id', 'time_window', 'func_expr', 'version']
 
-    def __init__(self, metric_id: str, time_window: int, func_expr: str,
-                 horizontal_level: int, vertical_level: int, version: str):
+    def __init__(self, metric_id: str, time_window: int, func_expr: str, version: str):
         """
 
         :param metric_id: identifier of the metric
@@ -51,14 +50,17 @@ class Metric:
         self.id = metric_id
         self.time_window = time_window
         self.func_expr = func_expr
-        self.horizontal_level = horizontal_level
-        self.vertical_level = vertical_level
         self.version = version
+
+    def __str__(self):
+        d = {s: self.__getattribute__(s) for s in self.__slots__}
+        return "{}".format(d)
 
 
 class OutputMetric(Metric):
     __slots__ = ['group_keys', 'group_map', 'func_var', 'measure_time',
-                 'compute_time', 'val', 'func_vars']
+                 'compute_time', 'val', 'func_vars', 'horizontal_level',
+                 'vertical_level']
 
     SPARK_TYPE = MapType(StringType(), StructType([
         StructField("type", StringType(), True),
@@ -96,7 +98,8 @@ class OutputMetric(Metric):
 
     ])
 
-    def __init__(self, metric: Metric, val: float, measure_time: datetime):
+    def __init__(self, metric: Metric, val: float, measure_time: datetime, horizontal_level: int,
+                 vertical_level: int):
         """
         :param val: value (float)
         :param measure_time: time when the metric was computed
@@ -104,15 +107,16 @@ class OutputMetric(Metric):
         Note that compute time is initialised automatically but it can be overwritten
         """
 
-        super().__init__(metric.id, metric.time_window, metric.func_expr,
-                         metric.horizontal_level, metric.vertical_level, metric.version)
+        super().__init__(metric.id, metric.time_window, metric.func_expr, metric.version)
 
-        self.measure_time = measure_time
+        self.measure_time = to_datetime(measure_time)
         self.compute_time = datetime.now()
-        self.val = val
+        self.val = float(val)
         self.group_keys = []
         self.group_map = {}
         self.func_vars = {}
+        self.horizontal_level = horizontal_level
+        self.vertical_level = vertical_level
 
     def add_group_value(self, value: StructuredValue):
         ##TODO Warn if same value is added twice
@@ -144,23 +148,22 @@ class OutputMetric(Metric):
 
 
 class SourceMetric(Metric):
+    __slots__ = ['metric_id', 'time_window', 'func_expr', 'version', 'func_vars']
 
     def __init__(self, metric_id: str, time_window: int, func_expr: str,
-                 horizontal_level: int, vertical_level: int, version: str, func_vars=[]):
+                 version: str, func_vars=[]):
         """
 
         :param metric_id: identifier of the metric
         :param time_window: how often in second the metric is computed
         :param func_expr:
-        :param horizontal_level:
-        :param vertical_level:
         :param version: version identifier
         :param func_vars: list of strings for the functional variables
 
 
         """
 
-        super().__init__(metric_id, time_window, func_expr, horizontal_level, vertical_level, version)
+        super().__init__(metric_id, time_window, func_expr, version)
         self.func_vars = func_vars
 
 
@@ -168,6 +171,7 @@ class Definition:
     """
     Simple container for metrics
     """
+    metric: SourceMetric
 
     def __init__(self, metric: SourceMetric):
         self.stages = []
@@ -175,3 +179,19 @@ class Definition:
 
     def add_stage(self, stage: Stage):
         self.stages.append(stage)
+        return self
+
+    def __str__(self):
+        return "metric:{}, stages[]".format(self.metric, ",".join([str(s) for s in self.stages]))
+
+
+def to_datetime(time) -> datetime:
+    raw_type = type(time)
+
+    if raw_type is datetime:
+        return time
+
+    if raw_type in [int, float, Decimal]:
+        return datetime.fromtimestamp(time)
+
+    raise (Exception("Un-parsable time {} of type {}".format(time, raw_type)))
