@@ -1,7 +1,7 @@
 from google.cloud import bigquery
 from pyspark.sql import SparkSession
 
-from merlin.engines.context import Context
+from merlin.engines.context import Context, BigQueryReaderOption
 from merlin.engines.engine import AbstractEngine
 from merlin.metric import Definition
 from merlin.stage import Stage, StageType
@@ -13,11 +13,13 @@ class SparkStandAlone(AbstractEngine):
     def __init__(self, context: Context, spark_session: SparkSession):
         self.spark = spark_session
         self.context = context
-        self.big_query_client = self._get_or_create_client()
-        self.workspace_project = self.context.big_query.workspace_project
+        self.bq_client = self._get_or_create_client()
+        self.workspace_project = self.context.reader.options.get(BigQueryReaderOption.WORKSPACE_PROJECT.value)
 
     def _get_or_create_client(self):
-        # TODO check if the client exists in Context
+        if self.context.reader.client is not None:
+            return self.context.reader.client
+
         client = bigquery.Client()
         return client
 
@@ -44,11 +46,11 @@ class SparkStandAlone(AbstractEngine):
     def process_big_query_stage(self, stage: Stage, definition: Definition):
         # TODO handle uniques to make sure two run are fine
         destination_table_id = "{}.{}.{}".format(self.workspace_project, stage.workspace_dataset, stage.view_name)
-        self.client.delete_table(destination_table_id, not_found_ok=True)
+        self.bq_client.delete_table(destination_table_id, not_found_ok=True)
         job_config = bigquery.QueryJobConfig(destination=destination_table_id)
-        query_job = self.client.query(stage.sql_query, job_config=job_config)  # Make an API request.
-        query_job.result()  # Wait for the job to complete.
-        # TODO check result
+        query_job = self.bq_client.query(stage.sql_query, job_config=job_config)  # Make an API request.
+        job_result = query_job.result()  # Waits for the job to complete.
+        # TODO check job result
         df = self.spark.read.format("bigquery").option("table", destination_table_id).load()
         df.createOrReplaceTempView(stage.view_name)
 
