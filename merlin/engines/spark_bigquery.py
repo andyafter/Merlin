@@ -33,7 +33,7 @@ class SparkStandAlone(AbstractEngine):
                 stored_partitions[stage.id] = self.process_sql_stage(stage, metric_definition)
             elif stage.stage_type == StageType.python:
                 self.process_python_stage(stage, metric_definition)
-            elif stage.stage_type == StageType.big_query
+            elif stage.stage_type == StageType.big_query:
                 self.process_big_query(stage, metric_definition)
             else:
                 self.LOGGER("I don't know how to compute %s stage", stage.stage_type)
