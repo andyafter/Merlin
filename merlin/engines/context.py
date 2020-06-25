@@ -10,6 +10,11 @@ class ReaderType(Enum):
     PRESTO = 0
     SPARK_NATIVE = 1
     JDBC = 2
+    BIGQUERY = 3
+
+
+class BigQueryReaderOption(Enum):
+    WORKSPACE_PROJECT = "workspace_project"
 
 
 class Reader:
@@ -17,9 +22,10 @@ class Reader:
     Where we read the data from
     """
 
-    __slots__ = ["user", "password", "uri", "type", 'driver']
+    __slots__ = ["user", "password", "uri", "type", 'driver', 'client', 'options']
 
-    def __init__(self, user: str, password: str, uri: str, reader_type: ReaderType, driver=None):
+    def __init__(self, user: str, password: str, uri: str, reader_type: ReaderType, driver=None, client=None,
+                 options={}):
         """
 
         :param user: username to use for JDBC
@@ -33,6 +39,8 @@ class Reader:
         self.uri = urlparse(uri)
         self.type = reader_type
         self.driver = driver
+        self.client = client
+        self.options = options
 
 
 class Writer:
