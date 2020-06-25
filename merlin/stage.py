@@ -12,6 +12,7 @@ class StageType(Enum):
     presto_sql = 0
     spark_sql = 1
     python = 2
+    big_query = 3
 
 
 class StageOutputType(Enum):
@@ -29,10 +30,11 @@ class StageException(Exception):
 class Stage:
     horizontal_level: int
     vertical_level: int
+    region: str
 
     def __init__(self, stage_type: StageType, output_type=StageOutputType.view,
                  stage_id=str(uuid.uuid4()), sql_query=None, horizontal_level=0, vertical_level=0,
-                 view_name=None, py_mod=None, py_stage_args=None):
+                 view_name=None, py_mod=None, py_stage_args=None, region=None, workspace_dataset=None):
         self.id = stage_id
         self.stage_type = stage_type
         self.sql_query = sql_query
@@ -43,6 +45,8 @@ class Stage:
         self.py_mod = py_mod
         self.py_stage_args = py_stage_args
         self.validate()
+        self.region = region
+        self.workspace_dataset = workspace_dataset
 
         if self.stage_type == StageType.python:
             self.py_stage = self.__load_custom_stage__()
