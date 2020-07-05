@@ -17,17 +17,18 @@ class MetricParserException(Exception):
 class MetricParser:
 
     def __init__(self):
-        self.metric_fields = set(['metric_id', 'time_window', 'func_expr', 'version'])
+        self.metric_fields = set(
+            ['metric_id', 'time_window', 'func_expr', 'version'])
 
     def load_metrics(self, metric_db="merlin/yaml/metric_definition.yml") -> List[Definition]:
 
         definitions = []
         with open(metric_db, 'r') as file_handler:
-            unparsed_definitions = yaml.load(file_handler, Loader=yaml.FullLoader)
+            unparsed_definitions = yaml.load(
+                file_handler, Loader=yaml.FullLoader)
 
             for d in unparsed_definitions:
                 source_metric = self.parse_source_metric(d)
-
                 if 'stages' not in d.keys():
                     raise MetricParserException("Stages not defined ")
 
@@ -38,6 +39,7 @@ class MetricParser:
 
                 for s in d['stages']:
                     metric_def.add_stage(self.get_stage(s))
+                definitions.append(metric_def)
 
         return definitions
 
@@ -48,18 +50,19 @@ class MetricParser:
 
         if s["stage_type"] == 'python':
             if "py_mod" not in s.keys():
-                raise MetricParserException(f"Incorrect YAML Definition: py_mod not found ")
+                raise MetricParserException(
+                    f"Incorrect YAML Definition: py_mod not found ")
 
         if s["stage_type"] == 'sql_query':
             if 'sql_query' not in s.keys():
-                raise MetricParserException(f"Incorrect YAML Definition: sql_query not found ")
+                raise MetricParserException(
+                    f"Incorrect YAML Definition: sql_query not found ")
 
             # TODO: find better location for sql zip
             with ZipFile("../test/sql.zip", 'r') as zip_file:
                 query = zip_file.read(f"sql/{stage_init_param['sql_query']}")
                 stage_init_param['sql_query'] = query
 
-        print(stage_init_param)
         return Stage(**stage_init_param)
 
     def parse_source_metric(self, source_map) -> SourceMetric:
@@ -67,7 +70,8 @@ class MetricParser:
         keys = set(source_map.keys())
         for k in self.metric_fields:
             if k not in keys:
-                raise MetricParserException("Missing field {} in  {}".format(k, source_map))
+                raise MetricParserException(
+                    "Missing field {} in  {}".format(k, source_map))
 
         assert isinstance(source_map['metric_id'], str)
         assert isinstance(source_map['time_window'], int)

@@ -1,6 +1,5 @@
 import unittest
 from zipfile import ZipFile
-from importlib import import_module
 
 from merlin.parser import MetricParser
 
@@ -17,7 +16,8 @@ class TestParser(unittest.TestCase):
 
     def test_parser_get_stage(self):
         mp = MetricParser()
-        mp.load_metrics(metric_db="yaml/metric_definition.yml")
+        definitions = mp.load_metrics(metric_db="yaml/metric_definition.yml")
+        print(definitions)
 
 
 if __name__ == '__main__':
