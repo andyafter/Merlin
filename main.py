@@ -41,7 +41,8 @@ def get_engine(engine_type, definitions, spark, options):
             password=None,
             uri=None,
             client=None,  # Pass the client if the keyfile is not null
-            reader_type=ctx.ReaderType.BIGQUERY
+            reader_type=ctx.ReaderType.BIGQUERY,
+            options=options
         )
         engine = SparkBigQuery(context=context, spark_session=spark)
 
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     spark_session = get_spark_session()
 
     options = {
-        'key_file': args.keyfile
+        'keyfile': args.keyfile
     }
     engine = get_engine(args.engine, definitions, spark_session, options)
 

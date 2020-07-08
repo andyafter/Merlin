@@ -1,4 +1,5 @@
 from google.cloud import bigquery
+from google.oauth2 import service_account
 from pyspark.sql import SparkSession
 
 from merlin.engines.context import Context, BigQueryReaderOption
@@ -20,7 +21,19 @@ class SparkBigQuery(AbstractEngine):
         if self.context.reader.client is not None:
             return self.context.reader.client
 
-        client = bigquery.Client()
+        if 'keyfile' in self.context.reader.options:
+            key_file = self.context.reader.options.get('key_file')
+            credentials = service_account.Credentials.from_service_account_file(
+                key_file,
+                scopes=["https://www.googleapis.com/auth/cloud-platform"],
+            )
+
+            client = bigquery.Client(credentials=credentials,
+                                     project=credentials.project_id,
+                                     )
+        else:
+            client = bigquery.Client()
+
         return client
 
     @timed
