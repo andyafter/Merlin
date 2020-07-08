@@ -1,23 +1,22 @@
 import unittest
-from zipfile import ZipFile
 
+from merlin.metric import Definition, Stage
 from merlin.parser import MetricParser
 
 
-class TestParser(unittest.TestCase):
-    def test_something(self):
-        MetricParser().load_metrics(metric_db="yaml/metric_definition.yml")
+class MetricParserTest(unittest.TestCase):
+    def test_loading(self):
+        parser = MetricParser("../metrics.yaml", "../metric_sql.zip", None)
+        metric_definition = parser.load_metrics()
+        self.assertIsInstance(metric_definition, list)
+        for e in metric_definition:
+            self.assertIsInstance(e, Definition)
+            self.assertIsNotNone(e.metric.metric_id)
+            self.assertIsNotNone(e.stages)
+            for s in e.stages:
+                self.assertIsInstance(s, Stage)
+                print(s.sql_query)
 
-    def test_zip_reading(self):
-        sql = "query_test.sql"
-        with ZipFile("../test/sql.zip", 'r') as zip_file:
-            query = zip_file.read(f"sql/{sql}")
-            # TODO: import from moduels folder first then move it to zip
-
-    def test_parser_get_stage(self):
-        mp = MetricParser()
-        definitions = mp.load_metrics(metric_db="yaml/metric_definition.yml")
-        print(definitions)
 
 
 if __name__ == '__main__':

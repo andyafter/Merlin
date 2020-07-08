@@ -22,7 +22,7 @@ class SparkPresto(AbstractEngine):
         for stage in stages:
 
             if stage.stage_type == StageType.presto_sql:
-                stored_partitions[stage.id] = self.process_sql_stage(stage, metric_definition)
+                stored_partitions[stage.metric_id] = self.process_sql_stage(stage, metric_definition)
             else:
                 self.LOGGER("I don't know how to compute %s stage", stage.stage_type)
 

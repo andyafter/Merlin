@@ -34,7 +34,7 @@ class Metric:
     Basic definition of a metric
     """
 
-    __slots__ = ['id', 'time_window', 'func_expr', 'version']
+    __slots__ = ['metric_id', 'time_window', 'func_expr', 'version']
 
     def __init__(self, metric_id: str, time_window: int, func_expr: str, version: str):
         """
@@ -47,7 +47,7 @@ class Metric:
 
         """
 
-        self.id = metric_id
+        self.metric_id = metric_id
         self.time_window = time_window
         self.func_expr = func_expr
         self.version = version
@@ -107,7 +107,7 @@ class OutputMetric(Metric):
         Note that compute time is initialised automatically but it can be overwritten
         """
 
-        super().__init__(metric.id, metric.time_window, metric.func_expr, metric.version)
+        super().__init__(metric.metric_id, metric.time_window, metric.func_expr, metric.version)
 
         self.measure_time = to_datetime(measure_time)
         self.compute_time = datetime.now()
@@ -128,7 +128,7 @@ class OutputMetric(Metric):
         self.func_vars[value.value_id] = value
 
     def asdict(self):
-        out_dict = {'id': self.id,
+        out_dict = {'id': self.metric_id,
                     'measure_time': int(self.measure_time.timestamp()),
                     'compute_time': int(self.compute_time.timestamp()),
                     'compute_date': self.compute_time.strftime("%Y-%m-%d"),
@@ -180,6 +180,9 @@ class Definition:
     def add_stage(self, stage: Stage):
         self.stages.append(stage)
         return self
+
+    def __repr__(self):
+        return "metric:{}, stages[]".format(self.metric, ",".join([str(s) for s in self.stages]))
 
     def __str__(self):
         return "metric:{}, stages[]".format(self.metric, ",".join([str(s) for s in self.stages]))

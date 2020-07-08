@@ -8,7 +8,7 @@ from merlin.stage import Stage, StageType
 from merlin.utils import timed
 
 
-class SparkStandAlone(AbstractEngine):
+class SparkBigQuery(AbstractEngine):
 
     def __init__(self, context: Context, spark_session: SparkSession):
         self.spark = spark_session
@@ -32,11 +32,11 @@ class SparkStandAlone(AbstractEngine):
         for stage in stages:
 
             if stage.stage_type == StageType.spark_sql:
-                stored_partitions[stage.id] = self.process_sql_stage(stage, metric_definition)
+                stored_partitions[stage.metric_id] = self.process_sql_stage(stage, metric_definition)
             elif stage.stage_type == StageType.python:
                 self.process_python_stage(stage, metric_definition)
             elif stage.stage_type == StageType.big_query:
-                self.process_big_query(stage, metric_definition)
+                self.process_big_query_stage(stage, metric_definition)
             else:
                 self.LOGGER("I don't know how to compute %s stage", stage.stage_type)
 
@@ -44,14 +44,16 @@ class SparkStandAlone(AbstractEngine):
 
     @timed
     def process_big_query_stage(self, stage: Stage, definition: Definition):
-        # TODO handle uniques to make sure two run are fine
-        destination_table_id = "{}.{}.{}".format(self.workspace_project, stage.workspace_dataset, stage.view_name)
-        self.bq_client.delete_table(destination_table_id, not_found_ok=True)
-        job_config = bigquery.QueryJobConfig(destination=destination_table_id)
+        job_config = bigquery.QueryJobConfig()
         query_job = self.bq_client.query(stage.sql_query, job_config=job_config)  # Make an API request.
         job_result = query_job.result()  # Waits for the job to complete.
         # TODO check job result
-        df = self.spark.read.format("bigquery").option("table", destination_table_id).load()
+        assert isinstance(query_job.destination, bigquery.TableReference)
+        destination = query_job.destination
+        table_id = "{}.{}.{}".format(destination.project, destination.dataset_id, destination.table_id)
+        df = self.spark.read.format("bigquery").option("table", table_id).load()
+        print(df.show())
+        print(stage.view_name)
         df.createOrReplaceTempView(stage.view_name)
 
     @timed

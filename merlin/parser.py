@@ -1,8 +1,7 @@
 from typing import List
+from zipfile import ZipFile
 
 import yaml
-from zipfile import ZipFile
-from importlib import import_module
 
 from merlin.metric import SourceMetric, Definition
 from merlin.stage import Stage, StageType, StageOutputType
@@ -15,60 +14,74 @@ class MetricParserException(Exception):
 
 
 class MetricParser:
+    METRIC_FIELDS = set(['metric_id', 'time_window', 'func_expr', 'version'])
 
-    def __init__(self):
-        self.metric_fields = set(
-            ['metric_id', 'time_window', 'func_expr', 'version'])
+    def __init__(self, metric_db: str, query_definition_zip: str, python_mod_zip: str):
+        self.metric_db = metric_db
+        self.query_definition_zip = query_definition_zip
+        self.python_mod_zip = python_mod_zip
+        # TODO handle mods
 
-    def load_metrics(self, metric_db="merlin/yaml/metric_definition.yml") -> List[Definition]:
+    @staticmethod
+    def validate_definition_dict(d):
 
-        definitions = []
-        with open(metric_db, 'r') as file_handler:
-            unparsed_definitions = yaml.load(
-                file_handler, Loader=yaml.FullLoader)
+        if 'stages' not in d.keys():
+            raise MetricParserException("Stages not defined ")
 
-            for d in unparsed_definitions:
-                source_metric = self.parse_source_metric(d)
-                if 'stages' not in d.keys():
-                    raise MetricParserException("Stages not defined ")
+        if not isinstance(d['stages'], list):
+            raise MetricParserException("Stages not a list ")
 
-                if not isinstance(d['stages'], list):
-                    raise MetricParserException("Stages not a list ")
+    def load_metrics(self) -> List[Definition]:
 
-                metric_def = Definition(source_metric)
-
-                for s in d['stages']:
-                    metric_def.add_stage(self.get_stage(s))
-                definitions.append(metric_def)
+        with open(self.metric_db, 'r') as fh:
+            unparsed_definitions = yaml.load(fh, Loader=yaml.FullLoader)
+        definitions = self.parse_definitions(unparsed_definitions)
 
         return definitions
 
-    def get_stage(self, s) -> Stage:
-        stage_init_param = s.copy()
-        stage_init_param['output_type'] = StageOutputType[s['output_type']]
-        stage_init_param['stage_type'] = StageType[s['stage_type']]
+    def parse_definitions(self, unparsed_definitions: List[dict]):
+        definitions = []
+        for d in unparsed_definitions:
+            self.validate_definition_dict(d)
 
-        if s["stage_type"] == 'python':
+            source_metric = self.parse_source_metric(d)
+            metric_def = Definition(source_metric)
+
+            for s in d['stages']:
+                metric_def.add_stage(self.load_stage(s))
+
+            definitions.append(metric_def)
+        return definitions
+
+    def load_query_from_zip(self, s):
+        if 'sql_query' not in s.keys():
+            raise MetricParserException(
+                f"Incorrect YAML Definition: sql_query not found ")
+        with ZipFile(self.query_definition_zip, 'r') as zip_file:
+            query = zip_file.read(f"sql/{s['sql_query']}")
+        return query.decode("utf-8")
+
+    def load_stage(self, s) -> Stage:
+        stage_init_param = s.copy()
+
+        if s["stage_type"] == StageType.python.name:
             if "py_mod" not in s.keys():
                 raise MetricParserException(
                     f"Incorrect YAML Definition: py_mod not found ")
 
-        if s["stage_type"] == 'sql_query':
-            if 'sql_query' not in s.keys():
-                raise MetricParserException(
-                    f"Incorrect YAML Definition: sql_query not found ")
+        if s["stage_type"] in [StageType.presto_sql.name, StageType.big_query.name, StageType.spark_sql.name]:
+            query = self.load_query_from_zip(s)
+            stage_init_param['sql_query'] = query
 
-            # TODO: find better location for sql zip
-            with ZipFile("../test/sql.zip", 'r') as zip_file:
-                query = zip_file.read(f"sql/{stage_init_param['sql_query']}")
-                stage_init_param['sql_query'] = query
+        stage_init_param['output_type'] = StageOutputType[s['output_type']]
+        stage_init_param['stage_type'] = StageType[s['stage_type']]
 
         return Stage(**stage_init_param)
 
     def parse_source_metric(self, source_map) -> SourceMetric:
 
         keys = set(source_map.keys())
-        for k in self.metric_fields:
+        for k in self.METRIC_FIELDS:
             if k not in keys:
                 raise MetricParserException(
                     "Missing field {} in  {}".format(k, source_map))
