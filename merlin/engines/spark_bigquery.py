@@ -22,7 +22,7 @@ class SparkBigQuery(AbstractEngine):
             return self.context.reader.client
 
         if 'keyfile' in self.context.reader.options:
-            key_file = self.context.reader.options.get('key_file')
+            key_file = self.context.reader.options.get('keyfile')
             credentials = service_account.Credentials.from_service_account_file(
                 key_file,
                 scopes=["https://www.googleapis.com/auth/cloud-platform"],
