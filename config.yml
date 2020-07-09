@@ -1,6 +1,0 @@
-stg:
-  bigquery:
-    writer:
-      bucket: gs://airasia-metrics-data-stg
-    reader:
-      reader_type: SPARK_NATIVE

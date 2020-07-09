@@ -25,6 +25,7 @@ def get_engine(engine_type, definitions, spark, options, configs):
                           )
 
     if engine_type == "spark_stand_alone":
+        spark_config = configs["spark_stand_alone"]
         context.reader = ctx.Reader(
             user=None,
             password=None,
@@ -32,11 +33,12 @@ def get_engine(engine_type, definitions, spark, options, configs):
             reader_type=ctx.ReaderType.SPARK_NATIVE
         )
         context.writer = ctx.Writer(
-            uri=configs["bucket"] if "writer" in configs and "bucket" in configs["writer"] else None
+            uri=spark_config["writer"]["bucket"] if "writer" in spark_config and "bucket" else None
         )
         engine = SparkStandAlone(context=context, spark_session=spark)
 
     elif engine_type == "big_query":
+        bq_config = configs["big_query"]
         context.reader = ctx.Reader(
             user=None,
             password=None,
@@ -44,6 +46,9 @@ def get_engine(engine_type, definitions, spark, options, configs):
             client=None,  # Pass the client if the keyfile is not null
             reader_type=ctx.ReaderType.BIGQUERY,
             options=options
+        )
+        context.writer = ctx.Writer(
+            uri=bq_config["writer"]["bucket"] if "writer" in bq_config else None
         )
         engine = SparkBigQuery(context=context, spark_session=spark)
 

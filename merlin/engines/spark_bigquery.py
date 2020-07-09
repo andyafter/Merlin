@@ -15,7 +15,8 @@ class SparkBigQuery(AbstractEngine):
         self.spark = spark_session
         self.context = context
         self.bq_client = self._get_or_create_client()
-        self.workspace_project = self.context.reader.options.get(BigQueryReaderOption.WORKSPACE_PROJECT.value)
+        self.workspace_project = self.context.reader.options.get(
+            BigQueryReaderOption.WORKSPACE_PROJECT.value)
 
     def _get_or_create_client(self):
         if self.context.reader.client is not None:
@@ -45,28 +46,49 @@ class SparkBigQuery(AbstractEngine):
         for stage in stages:
 
             if stage.stage_type == StageType.spark_sql:
-                stored_partitions[stage.metric_id] = self.process_sql_stage(stage, metric_definition)
+                stored_partitions[stage.metric_id] = self.process_sql_stage(
+                    stage, metric_definition)
             elif stage.stage_type == StageType.python:
                 self.process_python_stage(stage, metric_definition)
             elif stage.stage_type == StageType.big_query:
                 self.process_big_query_stage(stage, metric_definition)
             else:
-                self.LOGGER("I don't know how to compute %s stage", stage.stage_type)
+                self.LOGGER("I don't know how to compute %s stage",
+                            stage.stage_type)
 
         return stored_partitions
 
     @timed
     def process_big_query_stage(self, stage: Stage, definition: Definition):
         job_config = bigquery.QueryJobConfig()
-        query_job = self.bq_client.query(stage.sql_query, job_config=job_config)  # Make an API request.
+        # Make an API request.
+        query_job = self.bq_client.query(
+            stage.sql_query, job_config=job_config)
         job_result = query_job.result()  # Waits for the job to complete.
         # TODO check job result
         assert isinstance(query_job.destination, bigquery.TableReference)
         destination = query_job.destination
-        table_id = "{}.{}.{}".format(destination.project, destination.dataset_id, destination.table_id)
-        df = self.spark.read.format("bigquery").option("table", table_id).load()
-        print(df.show())
-        print(stage.view_name)
+        table_id = "{}.{}.{}".format(
+            destination.project, destination.dataset_id, destination.table_id)
+        df = self.spark.read.format("bigquery").option(
+            "table", table_id).load()
+
+        df.show()
+
+        if stage.is_store():
+            print("writing to stage")
+            size = df.count()
+            #self.LOGGER.info("Writing to %d ", size)
+            output_df = self.to_metric_schema(
+                df, stage, definition, 2, 500)
+            self.LOGGER.info("Writing to %s ",
+                             self.context.writer.uri.geturl())
+            output_df.show()
+            output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \
+                format("orc").mode("append"). \
+                save(self.context.writer.uri.geturl())
+            print("Writing successful -------")
+
         df.createOrReplaceTempView(stage.view_name)
 
     @timed
@@ -80,14 +102,17 @@ class SparkBigQuery(AbstractEngine):
             size = stage_df.count()
             self.LOGGER.info("Writing to %d ", size)
             # TODO change compute suitable values for repartitioning
-            output_df = self.to_metric_schema(stage_df, stage, definition, 2, 500)
+            output_df = self.to_metric_schema(
+                stage_df, stage, definition, 2, 500)
 
-            self.LOGGER.info("Writing to %s ", self.context.writer.uri.geturl())
+            self.LOGGER.info("Writing to %s ",
+                             self.context.writer.uri.geturl())
             output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \
                 format("orc").mode("append"). \
                 save(self.context.writer.uri.geturl())
 
-            partitions = output_df.select(*self.DEFAULT_PARTITION_COLUMNS).distinct().collect()
+            partitions = output_df.select(
+                *self.DEFAULT_PARTITION_COLUMNS).distinct().collect()
             stored_partitions.extend(partitions)
 
         elif stage.is_view():
