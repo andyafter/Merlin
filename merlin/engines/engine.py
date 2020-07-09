@@ -13,7 +13,8 @@ FUNCTIONAL_VARIABLE_NAME_PREFIX = re.compile(r"^func_var_")
 
 class AbstractEngine(ABC):
     LOGGER = get_logger(level="INFO", name=__name__)
-    DEFAULT_PARTITION_COLUMNS = ["id", "compute_date", "compute_hour", "horizontal_level", "vertical_level"]
+    DEFAULT_PARTITION_COLUMNS = [
+        "id", "compute_date", "compute_hour", "horizontal_level", "vertical_level"]
 
     @classmethod
     def compute(cls, metric_definition: Definition):
@@ -24,7 +25,8 @@ class AbstractEngine(ABC):
                          repartition_count: int) -> DataFrame:
         out_rdd = data_frame.repartition(repartition_count).rdd.map(lambda row: row_mapper(row, stage,
                                                                                            definition))
-        out_df = out_rdd.toDF(OutputMetric.SPARK_OUTPUT_SCHEMA).repartition(output_partition)
+        out_df = out_rdd.toDF(
+            OutputMetric.SPARK_OUTPUT_SCHEMA).repartition(output_partition)
         return out_df
 
 

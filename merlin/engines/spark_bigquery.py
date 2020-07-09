@@ -76,18 +76,17 @@ class SparkBigQuery(AbstractEngine):
         df.show()
 
         if stage.is_store():
-            print("writing to stage")
             size = df.count()
-            #self.LOGGER.info("Writing to %d ", size)
+            self.LOGGER.info("Writing to %d ", size)
             output_df = self.to_metric_schema(
                 df, stage, definition, 2, 500)
             self.LOGGER.info("Writing to %s ",
                              self.context.writer.uri.geturl())
-            output_df.show()
             output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \
                 format("orc").mode("append"). \
                 save(self.context.writer.uri.geturl())
-            print("Writing successful -------")
+            output_df.write.format("bigquery").mode(
+                "overwrite").option("table", "airasia-opdatalake-stg.TEMP.metrics").save()
 
         df.createOrReplaceTempView(stage.view_name)
 
