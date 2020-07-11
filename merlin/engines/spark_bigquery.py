@@ -38,7 +38,7 @@ class SparkBigQuery(AbstractEngine):
         return client
 
     @timed
-    def compute(self, metric_definition: Definition) -> dict:
+    def compute(self, metric_definition: Definition, metrics_table: str) -> dict:
         self.LOGGER.info("Computing metric {} ".format(metric_definition))
 
         stages = metric_definition.stages
@@ -51,7 +51,8 @@ class SparkBigQuery(AbstractEngine):
             elif stage.stage_type == StageType.python:
                 self.process_python_stage(stage, metric_definition)
             elif stage.stage_type == StageType.big_query:
-                self.process_big_query_stage(stage, metric_definition)
+                self.process_big_query_stage(
+                    stage, metric_definition, metrics_table)
             else:
                 self.LOGGER("I don't know how to compute %s stage",
                             stage.stage_type)
@@ -59,7 +60,7 @@ class SparkBigQuery(AbstractEngine):
         return stored_partitions
 
     @timed
-    def process_big_query_stage(self, stage: Stage, definition: Definition):
+    def process_big_query_stage(self, stage: Stage, definition: Definition, metrics_table: str):
         job_config = bigquery.QueryJobConfig()
         # Make an API request.
         query_job = self.bq_client.query(
@@ -68,6 +69,7 @@ class SparkBigQuery(AbstractEngine):
         # TODO check job result
         assert isinstance(query_job.destination, bigquery.TableReference)
         destination = query_job.destination
+
         table_id = "{}.{}.{}".format(
             destination.project, destination.dataset_id, destination.table_id)
         df = self.spark.read.format("bigquery").option(
@@ -85,8 +87,10 @@ class SparkBigQuery(AbstractEngine):
             output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \
                 format("orc").mode("append"). \
                 save(self.context.writer.uri.geturl())
+
+            # TODO: discuss if we should pass the target dataset name
             output_df.write.format("bigquery").mode(
-                "overwrite").option("table", "airasia-opdatalake-stg.TEMP.metrics").save()
+                "overwrite").option("table", metrics_table).save()
 
         df.createOrReplaceTempView(stage.view_name)
 

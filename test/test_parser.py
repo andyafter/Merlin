@@ -6,7 +6,7 @@ from merlin.parser import MetricParser
 
 class MetricParserTest(unittest.TestCase):
     def test_loading(self):
-        parser = MetricParser("../metrics.yaml", "../metric_sql.zip", None)
+        parser = MetricParser("metrics.yaml", "metric_sql.zip", None)
         metric_definition = parser.load_metrics()
         self.assertIsInstance(metric_definition, list)
         for e in metric_definition:
@@ -16,7 +16,6 @@ class MetricParserTest(unittest.TestCase):
             for s in e.stages:
                 self.assertIsInstance(s, Stage)
                 print(s.sql_query)
-
 
 
 if __name__ == '__main__':

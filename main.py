@@ -136,7 +136,8 @@ if __name__ == '__main__':
                         spark_session, options, configs["stg"])
 
     for metric_def in definitions:
-        partitions = engine.compute(metric_def)
+        partitions = engine.compute(
+            metric_def, "airasia-opdatalake-stg.METRICS.test_table")
 
         expected_keys = ['id', 'compute_date', 'compute_hour', 'horizontal_level',
                          'vertical_level']

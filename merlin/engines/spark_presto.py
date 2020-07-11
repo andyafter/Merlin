@@ -22,9 +22,11 @@ class SparkPresto(AbstractEngine):
         for stage in stages:
 
             if stage.stage_type == StageType.presto_sql:
-                stored_partitions[stage.metric_id] = self.process_sql_stage(stage, metric_definition)
+                stored_partitions[stage.id] = self.process_sql_stage(
+                    stage, metric_definition)
             else:
-                self.LOGGER("I don't know how to compute %s stage", stage.stage_type)
+                self.LOGGER("I don't know how to compute %s stage",
+                            stage.stage_type)
 
         return stored_partitions
 
@@ -39,14 +41,17 @@ class SparkPresto(AbstractEngine):
             size = stage_df.count()
             self.LOGGER.info("Writing to %d ", size)
             # TODO change compute suitable values for repartitioning
-            output_df = self.to_metric_schema(stage_df, stage, definition, 2, 500)
+            output_df = self.to_metric_schema(
+                stage_df, stage, definition, 2, 500)
 
-            self.LOGGER.info("Writing to %s ", self.context.writer.uri.geturl())
+            self.LOGGER.info("Writing to %s ",
+                             self.context.writer.uri.geturl())
             output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \
                 format("orc").mode("append"). \
                 save(self.context.writer.uri.geturl())
 
-            partitions = output_df.select(*self.DEFAULT_PARTITION_COLUMNS).distinct().collect()
+            partitions = output_df.select(
+                *self.DEFAULT_PARTITION_COLUMNS).distinct().collect()
             stored_partitions.extend(partitions)
 
         elif stage.is_view():

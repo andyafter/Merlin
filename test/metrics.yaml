@@ -1,0 +1,14 @@
+- metric_id: pax_count_metric
+  description: Metrics for Pax Count
+  func_expr: expected_total_pax
+  stages:
+    - sql_query: pax_count.sql
+      stage_type: big_query
+      output_type: store
+      view_name: test
+      horizontal_level: 3
+  time_window: 300
+  func_vars:
+    - expected_total_pax
+    - actual_total_pax
+  version: 1
