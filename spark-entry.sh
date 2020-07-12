@@ -1,5 +1,5 @@
-/opt/spark/bin/spark-submit \
---jars /home/andy/workspace/spark-k8s/jars/spark-bigquery-latest.jar,/home/andy/workspace/spark-k8s/jars/gcs-connector-hadoop2-2.0.1-shaded.jar \
+spark-submit \
+--jars $SPARK_HOME/jars/spark-bigquery-latest.jar,$SPARK_HOME/jars/gcs-connector-latest-hadoop2.jar \
 main.py \
 --metric_db ../airline/stg/metrics.yaml \
 --sql_archive ../metric_sql.zip \
