@@ -34,5 +34,3 @@ if not PY37:
 
     print("Should run on python >= 3.7")
     # TODO handle better
-
-
