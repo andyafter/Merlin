@@ -33,6 +33,8 @@ class SparkBigQuery(AbstractEngine):
                                      project=credentials.project_id,
                                      )
         else:
+            print("!!!!!======")
+            print("does not have valid key file")
             client = bigquery.Client()
 
         return client
