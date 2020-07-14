@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
     for metric_def in definitions:
         partitions = engine.compute(
-            metric_def, "airasia-opdatalake-stg.METRICS.test_table")
+            metric_def, "airasia-opdatalake-stg.METRICS.general_metrics")
 
         expected_keys = ['id', 'compute_date', 'compute_hour', 'horizontal_level',
                          'vertical_level']
