@@ -32,10 +32,13 @@ class MetricParser:
             raise MetricParserException("Stages not a list ")
 
     def load_metrics(self) -> List[Definition]:
+        definitions = []
+        with ZipFile(self.metric_db, 'r') as zip_file:
+            metrics = {name: zip_file.read(name) for name in zip_file.namelist()}
 
-        with open(self.metric_db, 'r') as fh:
-            unparsed_definitions = yaml.load(fh, Loader=yaml.FullLoader)
-        definitions = self.parse_definitions(unparsed_definitions)
+        for m in metrics:
+            unparsed_definitions = yaml.load(metrics[m], Loader=yaml.FullLoader)
+            definitions.append(self.parse_definitions(unparsed_definitions))
 
         return definitions
 
