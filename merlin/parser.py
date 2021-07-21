@@ -34,11 +34,11 @@ class MetricParser:
     def load_metrics(self) -> List[Definition]:
         definitions = []
         with ZipFile(self.metric_db, 'r') as zip_file:
-            metrics = {name: zip_file.read(name) for name in zip_file.namelist()}
+            metrics = {name: zip_file.read(name) for name in list(zip_file.namelist())}
 
         for m in metrics:
-            unparsed_definitions = yaml.load(metrics[m], Loader=yaml.FullLoader)
-            definitions.append(self.parse_definitions(unparsed_definitions))
+            unparsed_definitions = [yaml.load(metrics[m], Loader=yaml.FullLoader)]
+            definitions = definitions + self.parse_definitions(unparsed_definitions)
 
         return definitions
 
