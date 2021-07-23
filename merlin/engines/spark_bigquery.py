@@ -90,7 +90,7 @@ class SparkBigQuery(AbstractEngine):
 
             # TODO: discuss if we should pass the target dataset name
             output_df.write.format("bigquery").mode(
-                "overwrite").option("table", metrics_table).save()
+                "append").option("table", metrics_table).save()
 
         df.createOrReplaceTempView(stage.view_name)
 

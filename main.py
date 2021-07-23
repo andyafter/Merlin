@@ -145,6 +145,6 @@ if __name__ == '__main__':
             for row in partition_records:
                 print(row)
 
-        spark_session.stop()
+    spark_session.stop()
 
 # parser yaml -> create metric -> run stage

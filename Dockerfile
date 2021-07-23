@@ -3,7 +3,7 @@ FROM ocassetti/spark-py:2.4.5.2
 USER root
 
 # Add the connector jar needed to access Google Cloud Storage using the Hadoop FileSystem API.
-ADD https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-latest-hadoop2.jar $SPARK_HOME/jars
+ADD https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop2-2.0.1.jar $SPARK_HOME/jars
 ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest.jar $SPARK_HOME/jars
 
 # Force python3
