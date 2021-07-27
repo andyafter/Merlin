@@ -133,11 +133,11 @@ if __name__ == '__main__':
         'keyfile': args.keyfile
     }
     engine = get_engine(args.engine, definitions,
-                        spark_session, options, configs["stg"])
+                        spark_session, options, configs)
 
     for metric_def in definitions:
         partitions = engine.compute(
-            metric_def, "airasia-opdatalake-stg.METRICS.general_metrics")
+            metric_def, configs["metrics_table"])
 
         expected_keys = ['id', 'compute_date', 'compute_hour', 'horizontal_level',
                          'vertical_level']
