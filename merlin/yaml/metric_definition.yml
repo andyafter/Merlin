@@ -4,8 +4,8 @@
   stages:
     - stage_type: python
       output_type: view
-      horizontal_level: 3  # direct naming convention from the stage class definition
-      py_mod: merlin.modules.DefaultStage
+      horizontal_level: 3 # direct naming convention from the stage class definition
+      py_mod: default_stage
     - sql_query: test_metric.sql
       stage_type: spark_sql
       output_type: store
@@ -22,8 +22,8 @@
   stages:
     - stage_type: python
       output_type: view
-      py_mod: merlin.modules.DefaultStage
-      horizontal_level: 3  # direct naming convention from the stage class definition
+      py_mod: default_stage
+      horizontal_level: 3 # direct naming convention from the stage class definition
     - sql_query: test_metric.sql
       stage_type: spark_sql
       output_type: store
@@ -33,6 +33,3 @@
     - location
     - average_temperature
   version: 1
-
-
-
