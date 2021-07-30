@@ -5,6 +5,10 @@ airflow_login.py
 dbinit.py
 initdb.py
 secrets.py
+resources
+.envrc
+.tool-versions
+jars
 
 # Airflow sqlite databases
 airflow.db
