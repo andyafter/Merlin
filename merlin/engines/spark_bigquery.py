@@ -75,7 +75,6 @@ class SparkBigQuery(AbstractEngine):
         df = self.spark.read.format("bigquery").option(
             "table", table_id).load()
 
-
         if stage.is_store():
             size = df.count()
             self.LOGGER.info("Writing to %d ", size)
