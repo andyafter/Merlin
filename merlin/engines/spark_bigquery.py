@@ -46,7 +46,7 @@ class SparkBigQuery(AbstractEngine):
         for stage in stages:
 
             if stage.stage_type == StageType.spark_sql:
-                stored_partitions[stage.id] = self.process_sql_stage(
+                stored_partitions[stage.metric_id] = self.process_sql_stage(
                     stage, metric_definition, metrics_table)
             elif stage.stage_type == StageType.python:
                 self.process_python_stage(stage, metric_definition)
@@ -74,7 +74,6 @@ class SparkBigQuery(AbstractEngine):
             destination.project, destination.dataset_id, destination.table_id)
         df = self.spark.read.format("bigquery").option(
             "table", table_id).load()
-
 
         if stage.is_store():
             size = df.count()
