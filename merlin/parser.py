@@ -14,7 +14,7 @@ class MetricParserException(Exception):
 
 
 class MetricParser:
-    METRIC_FIELDS = set(['metric_id', 'time_window', 'func_expr', 'version'])
+    METRIC_FIELDS = set(['id', 'time_window', 'func_expr', 'version'])
 
     def __init__(self, metric_db: str, query_definition_zip: str, python_mod_zip: str):
         self.metric_db = metric_db
@@ -89,12 +89,12 @@ class MetricParser:
                 raise MetricParserException(
                     "Missing field {} in  {}".format(k, source_map))
 
-        assert isinstance(source_map['metric_id'], str)
+        assert isinstance(source_map['id'], str)
         assert isinstance(source_map['time_window'], int)
         assert isinstance(source_map['func_expr'], str)
 
         source_metric = SourceMetric(
-            metric_id=source_map['metric_id'],
+            metric_id=source_map['id'],
             time_window=source_map['time_window'],
             version=str(source_map['version']),
             func_expr=source_map['func_expr']
