@@ -1,5 +1,6 @@
 from google.cloud import bigquery
 from google.oauth2 import service_account
+from google.api_core.exceptions import BadRequest
 from pyspark.sql import SparkSession
 
 from merlin.engines.context import Context, BigQueryReaderOption
@@ -65,7 +66,12 @@ class SparkBigQuery(AbstractEngine):
         # Make an API request.
         query_job = self.bq_client.query(
             stage.sql_query, job_config=job_config)
-        job_result = query_job.result()  # Waits for the job to complete.
+
+        try:
+            job_result = query_job.result()  # Waits for the job to complete.
+        except BadRequest as e:
+            for e in query_job.errors:
+                print('ERROR: {}'.format(e['message']))
         # TODO check job result
         assert isinstance(query_job.destination, bigquery.TableReference)
         destination = query_job.destination
