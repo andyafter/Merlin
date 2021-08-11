@@ -34,7 +34,7 @@ class Stage:
 
     def __init__(self, stage_type: StageType, output_type=StageOutputType.view,
                  stage_id=str(uuid.uuid4()), sql_query=None, horizontal_level=0, vertical_level=0,
-                 view_name=None, py_mod=None, py_stage_args=None, region=None, workspace_dataset=None):
+                 view_name=None, py_mod=None, py_stage_args=None, region=None, workspace_dataset=None, **kwargs):
         self.id = stage_id
         self.stage_type = stage_type
         self.sql_query = sql_query
