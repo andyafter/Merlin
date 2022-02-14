@@ -56,20 +56,35 @@ class Writer:
         self.uri = urlparse(uri)
 
 
+class Store:
+    """
+    Where to store metrics and cache
+    """
+
+    def __init__(self, metrics: str, cache: str):
+        """
+        :param  metrics: table to store metrics
+        :param  cache: views to cache
+        """
+        self.metrics = metrics
+        self.cache = cache
+
+
 class Context:
     """
     The context of the engine
     """
 
     __slots__ = ["metric_definitions", "env", "compute_datetime", "metric_table",
-                 "metric_data_store", "reader", "writer"]
+                 "metric_data_store", "reader", "writer", "store"]
 
     def __init__(self, metric_definitions: List[Definition], env: str,
                  compute_datetime: datetime,
                  metric_table: str,
                  metric_data_store: str,
                  reader: Reader,
-                 writer: Writer
+                 writer: Writer,
+                 store: Store
                  ):
         """
 
@@ -88,3 +103,4 @@ class Context:
         self.metric_data_store = urlparse(metric_data_store)
         self.reader = reader
         self.writer = writer
+        self.store = store

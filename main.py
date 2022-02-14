@@ -20,8 +20,8 @@ def get_engine(engine_type, definitions, spark, options, configs):
                           metric_data_store="test",
                           reader=None,
                           writer=None,
-                          compute_datetime=datetime.now()
-
+                          compute_datetime=datetime.now(),
+                          store=None
                           )
 
     if engine_type == "spark_stand_alone":
@@ -49,6 +49,10 @@ def get_engine(engine_type, definitions, spark, options, configs):
         )
         context.writer = ctx.Writer(
             uri=bq_config["writer"]["bucket"] if "writer" in bq_config else None
+        )
+        context.store = ctx.Store(
+            metrics=bq_config["store"]["metrics"] if "store" in bq_config else None,
+            cache=bq_config["store"]["cache"] if "store" in bq_config else None
         )
         engine = SparkBigQuery(context=context, spark_session=spark)
 
@@ -137,12 +141,10 @@ if __name__ == '__main__':
 
     for metric_def in definitions:
         try:
-            partitions = engine.compute(
-                    metric_def,
-                    configs["metrics_table"]
-                    )
+            partitions = engine.compute(metric_def)
         except Exception as e:
             print(e)
+            #  raise(e)
             continue
 
         expected_keys = ['id', 'compute_date', 'compute_hour', 'horizontal_level',

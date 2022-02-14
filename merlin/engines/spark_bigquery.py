@@ -39,21 +39,22 @@ class SparkBigQuery(AbstractEngine):
         return client
 
     @timed
-    def compute(self, metric_definition: Definition, metrics_table: str) -> dict:
+    def compute(self, metric_definition: Definition) -> dict:
         self.LOGGER.info("Computing metric {} ".format(metric_definition))
 
         stages = metric_definition.stages
         stored_partitions = {}
         for stage in stages:
+            self.LOGGER.info("Processing stage {} ".format(stage))
 
             if stage.stage_type == StageType.spark_sql:
                 stored_partitions[stage.id] = self.process_sql_stage(
-                    stage, metric_definition, metrics_table)
+                    stage, metric_definition)
             elif stage.stage_type == StageType.python:
                 self.process_python_stage(stage, metric_definition)
             elif stage.stage_type == StageType.big_query:
                 self.process_big_query_stage(
-                    stage, metric_definition, metrics_table)
+                    stage, metric_definition)
             else:
                 self.LOGGER("I don't know how to compute %s stage",
                             stage.stage_type)
@@ -61,7 +62,7 @@ class SparkBigQuery(AbstractEngine):
         return stored_partitions
 
     @timed
-    def process_big_query_stage(self, stage: Stage, definition: Definition, metrics_table: str):
+    def process_big_query_stage(self, stage: Stage, definition: Definition):
         job_config = bigquery.QueryJobConfig()
         # Make an API request.
         query_job = self.bq_client.query(
@@ -85,7 +86,7 @@ class SparkBigQuery(AbstractEngine):
             size = df.count()
             self.LOGGER.info("Writing to %d ", size)
             output_df = self.to_metric_schema(
-                df, stage, definition, 2, 500)
+                df, stage, definition, 2, 10)
             self.LOGGER.info("Writing to %s ",
                              self.context.writer.uri.geturl())
             output_df.write.partitionBy(*self.DEFAULT_PARTITION_COLUMNS). \
@@ -94,12 +95,15 @@ class SparkBigQuery(AbstractEngine):
 
             # TODO: discuss if we should pass the target dataset name
             output_df.write.format("bigquery").mode(
-                "append").option("table", metrics_table).save()
-
+                "append").option("table", self.context.store.metrics).save()
+        elif stage.is_cached_view():
+            view_name = stage.cached_view_name if stage.cached_view_name else stage.view_name
+            cache_destination = "{}.{}".format(self.context.store.cache, view_name)
+            df.write.format("bigquery").mode("overwrite").option("createDisposition", "CREATE_IF_NEEDED").option("table", cache_destination).save()
         df.createOrReplaceTempView(stage.view_name)
 
     @timed
-    def process_sql_stage(self, stage: Stage, definition: Definition, metrics_table: str) -> list:
+    def process_sql_stage(self, stage: Stage, definition: Definition) -> list:
 
         stage_df = self.spark.sql(stage.sql_query)
         stored_partitions = []
@@ -110,7 +114,7 @@ class SparkBigQuery(AbstractEngine):
             self.LOGGER.info("Writing to %d ", size)
             # TODO change compute suitable values for repartitioning
             output_df = self.to_metric_schema(
-                stage_df, stage, definition, 2, 500)
+                stage_df, stage, definition, 2, 10)
 
             self.LOGGER.info("Writing to %s ",
                              self.context.writer.uri.geturl())
@@ -123,10 +127,14 @@ class SparkBigQuery(AbstractEngine):
             stored_partitions.extend(partitions)
             # TODO: discuss if we should pass the target dataset name
             output_df.write.format("bigquery").mode(
-                "append").option("table", metrics_table).save()
+                "append").option("table", self.context.store.metrics).save()
 
         elif stage.is_view():
             stage_df.createOrReplaceTempView(stage.view_name)
+        elif stage.is_cached_view():
+            view_name = stage.cached_view_name if stage.cached_view_name else stage.view_name
+            cache_destination = "{}.{}".format(self.context.store.cache, view_name)
+            stage_df.write.format("bigquery").mode("overwrite").option("createDisposition", "CREATE_IF_NEEDED").option("table", cache_destination).save()
 
         return stored_partitions
 
