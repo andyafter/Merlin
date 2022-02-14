@@ -34,7 +34,7 @@ class Stage:
 
     def __init__(self, stage_type: StageType, output_type=StageOutputType.view,
                  stage_id=str(uuid.uuid4()), sql_query=None, horizontal_level=0, vertical_level=0,
-                 view_name=None, py_mod=None, py_stage_args=None, region=None, workspace_dataset=None, **kwargs):
+                 view_name=None, cached_view_name=None, py_mod=None, py_stage_args=None, region=None, workspace_dataset=None, **kwargs):
         self.id = stage_id
         self.stage_type = stage_type
         self.sql_query = sql_query
@@ -42,6 +42,7 @@ class Stage:
         self.horizontal_level = horizontal_level
         self.vertical_level = vertical_level
         self.view_name = view_name
+        self.cached_view_name = cached_view_name
         self.py_mod = py_mod
         self.py_stage_args = py_stage_args
         self.validate()
@@ -54,10 +55,13 @@ class Stage:
             self.py_stage = None
 
     def is_view(self):
-        return self.output_type == StageOutputType.view or self.output_type == StageOutputType.cached_view
+        return self.output_type == StageOutputType.view
 
     def is_store(self):
         return self.output_type == StageOutputType.store
+
+    def  is_cached_view(self):
+        return self.output_type == StageOutputType.cached_view 
 
     def validate(self):
         """
